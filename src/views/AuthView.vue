@@ -1,7 +1,7 @@
 <!-- src/views/AuthView.vue -->
 <template>
   <div class="auth-container">
-    <div class="auth-card">
+    <div class="auth-card card">
       <h1 class="title">DrugTracker System</h1>
       <p class="subtitle">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
 
@@ -15,7 +15,7 @@
             v-model="email"
             type="email"
             placeholder="you@example.com"
-            class="input-field"
+            class="form-input"
           />
         </div>
 
@@ -26,15 +26,15 @@
             v-model="password"
             type="password"
             placeholder="••••••••"
-            class="input-field"
+            class="form-input"
           />
         </div>
 
         <div class="button-group">
-          <button @click="handleLogin" class="btn-primary" :disabled="isLoading">
+          <button @click="handleLogin" class="btn btn-primary" :disabled="isLoading">
             {{ isLoading ? 'กำลังโหลด...' : 'เข้าสู่ระบบ' }}
           </button>
-          <button @click="handleRegister" class="btn-secondary" :disabled="isLoading">
+          <button @click="handleRegister" class="btn btn-secondary" :disabled="isLoading">
             ลงทะเบียน
           </button>
         </div>
@@ -46,15 +46,14 @@
 <script setup>
 import { ref } from 'vue'
 import { supabase } from '../supabase/client'
-import { useRouter } from 'vue-router' // ★★★ นำ Router กลับมาใช้งาน
+import { useRouter } from 'vue-router'
 
 const email = ref('')
 const password = ref('')
 const message = ref('')
 const isLoading = ref(false)
-const router = useRouter() // ★★★ สร้างตัวแปร router
+const router = useRouter()
 
-// ฟังก์ชัน Login
 const handleLogin = async () => {
   isLoading.value = true
   message.value = ''
@@ -64,8 +63,6 @@ const handleLogin = async () => {
       password: password.value,
     })
     if (error) throw error
-
-    // ★★★ สั่งให้เปลี่ยนไปหน้าหลัก หลังล็อกอินสำเร็จ ★★★
     router.push('/')
   } catch (error) {
     message.value = `เกิดข้อผิดพลาด: ${error.message}`
@@ -74,7 +71,6 @@ const handleLogin = async () => {
   }
 }
 
-// ฟังก์ชัน Register
 const handleRegister = async () => {
   isLoading.value = true
   message.value = ''
@@ -84,8 +80,6 @@ const handleRegister = async () => {
       password: password.value,
     })
     if (error) throw error
-
-    // ★★★ สั่งให้เปลี่ยนไปหน้าหลัก หลังลงทะเบียนสำเร็จ ★★★
     router.push('/')
   } catch (error) {
     message.value = `เกิดข้อผิดพลาด: ${error.message}`
@@ -101,83 +95,54 @@ const handleRegister = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #e9ecef;
+  padding: 1rem;
+  background-color: var(--bg-color);
 }
+
 .auth-card {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
 }
+
 .title {
   font-size: 1.8rem;
-  font-weight: bold;
+  font-weight: 600;
   text-align: center;
   margin-bottom: 0.5rem;
+  color: var(--text-color);
 }
+
 .subtitle {
   text-align: center;
-  color: #6c757d;
+  color: var(--subtle-text-color);
   margin-bottom: 2rem;
 }
+
 .message {
   padding: 1rem;
   margin-bottom: 1rem;
-  border-radius: 4px;
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--accent-color) 30%, transparent);
+  color: var(--secondary-text-color);
+  border: 1px solid var(--accent-color);
   word-break: break-all;
+  font-size: 0.9rem;
 }
+
 .form-group {
   margin-bottom: 1.5rem;
 }
+
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
-.input-field {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
+
 .button-group {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-button {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-.btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-.btn-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-}
-button:disabled {
-  background-color: #adb5bd;
-  cursor: not-allowed;
+  gap: 1rem;
 }
 </style>

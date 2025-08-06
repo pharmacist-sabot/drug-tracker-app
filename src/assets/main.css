@@ -1,0 +1,219 @@
+/* src/assets/main.css */
+/* 1. CSS Variables for Theming */
+:root {
+  /* Light Mode Colors */
+  --bg-color: #d1e8e2; /* Very light mint */
+  --text-color: #2c3531; /* Dark green/charcoal */
+  --card-bg-color: #ffffff;
+  --border-color: #d1e8e2;
+  --primary-color: #116466; /* Teal */
+  --primary-text-color: #ffffff;
+  --secondary-color: #d9b08c; /* Muted gold/tan */
+  --secondary-text-color: #2c3531;
+  --accent-color: #ffcb9a; /* Light peach */
+  --subtle-text-color: #5a6e6a;
+  --link-hover-color: #ffcb9a;
+  --shadow-color: rgba(44, 53, 49, 0.1);
+
+  --status-received-bg: #116466; /* Teal */
+  --status-ordered-bg: #d9b08c; /* Muted gold */
+  --status-pending-bg: #c75252; /* A complementary red */
+}
+
+html.dark {
+  /* Dark Mode Colors */
+  --bg-color: #2c3531; /* Dark green/charcoal */
+  --text-color: #d1e8e2; /* Very light mint */
+  --card-bg-color: #38423d;
+  --border-color: #4a5753;
+  --primary-color: #ffcb9a; /* Light peach */
+  --primary-text-color: #2c3531;
+  --secondary-color: #d9b08c; /* Muted gold/tan */
+  --secondary-text-color: #2c3531;
+  --accent-color: #116466; /* Teal */
+  --subtle-text-color: #a3b1ad;
+  --link-hover-color: #d9b08c;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+
+  --status-received-bg: #116466; /* Teal */
+  --status-ordered-bg: #d9b08c; /* Muted gold */
+  --status-pending-bg: #ff8989; /* Lighter red for dark bg */
+}
+
+/* 2. Global Styles */
+body {
+  margin: 0;
+  font-family: 'Prompt', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 3. Reusable Component Styles */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.page-header h1 {
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.page-header .subtitle {
+  font-size: 1.1rem;
+  color: var(--subtle-text-color);
+  margin-bottom: 2rem;
+  max-width: 600px;
+}
+
+.card {
+  background-color: var(--card-bg-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px var(--shadow-color);
+  padding: 1.5rem;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: 2rem;
+  }
+}
+
+/* Form Elements */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Prompt', sans-serif;
+  font-size: 1rem;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: 'Prompt', sans-serif;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+  text-align: center;
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+}
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: var(--secondary-text-color);
+}
+.btn:disabled {
+  background-color: var(--subtle-text-color);
+  color: var(--bg-color);
+  cursor: not-allowed;
+}
+
+/* Table Styles */
+.table-container {
+  background-color: var(--card-bg-color);
+  border-radius: 12px;
+  overflow-x: auto; /* Important for mobile */
+  box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Ensure table has minimum width for scrolling */
+}
+
+th,
+td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+th {
+  background-color: color-mix(in srgb, var(--card-bg-color) 85%, var(--border-color));
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--subtle-text-color);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.drug-name {
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+.drug-detail {
+  font-size: 0.9rem;
+  color: var(--subtle-text-color);
+}
+
+/* State Messages */
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  margin-top: 2rem;
+  background-color: var(--card-bg-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px var(--shadow-color);
+  color: var(--subtle-text-color);
+}
+.error-state {
+  color: var(--status-pending-bg);
+  font-weight: 500;
+}
