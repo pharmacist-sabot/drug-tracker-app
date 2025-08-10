@@ -68,7 +68,18 @@ const handleSubmit = async () => {
   error.value = null
 
   try {
-    // 1. Upsert Supplier (สร้างถ้ายังไม่มี, ใช้ที่มีอยู่ถ้าซ้ำ)
+    // 1. สร้างหรือดึงข้อมูล Batch สำหรับการเพิ่มด้วยตนเอง
+    // เพื่อให้มี import_batch_id ไปใส่ในตาราง purchase_orders
+    const manualBatchName = 'Manual Add'
+    const { data: batchData, error: batchError } = await supabase
+      .from('import_batches')
+      .upsert({ file_name: manualBatchName }, { onConflict: 'file_name' }) // ตรวจสอบจากชื่อไฟล์ ถ้าซ้ำจะใช้ของเดิม
+      .select()
+      .single()
+
+    if (batchError) throw batchError
+
+    // 2. Upsert Supplier (สร้างถ้ายังไม่มี, ใช้ที่มีอยู่ถ้าซ้ำ)
     const { data: supplierData, error: supplierError } = await supabase
       .from('suppliers')
       .upsert({ name: form.supplierName.trim() }, { onConflict: 'name' })
@@ -76,7 +87,7 @@ const handleSubmit = async () => {
       .single()
     if (supplierError) throw supplierError
 
-    // 2. Upsert Drug
+    // 3. Upsert Drug
     const { data: drugData, error: drugError } = await supabase
       .from('drugs')
       .upsert(
@@ -85,14 +96,15 @@ const handleSubmit = async () => {
           form: form.form.trim() || null,
           strength: form.strength.trim() || null,
         },
-        { onConflict: 'name,form,strength' }
+        { onConflict: 'name,form,strength' },
       )
       .select()
       .single()
     if (drugError) throw drugError
 
-    // 3. Insert Purchase Order
+    // 4. Insert Purchase Order
     const purchaseOrder = {
+      import_batch_id: batchData.id, // <-- เพิ่ม Batch ID ที่ได้มา
       supplier_id: supplierData.id,
       drug_id: drugData.id,
       quantity: form.quantity,
@@ -104,7 +116,7 @@ const handleSubmit = async () => {
     const { error: orderError } = await supabase.from('purchase_orders').insert(purchaseOrder)
     if (orderError) throw orderError
 
-    // 4. แจ้ง Parent Component ว่าเพิ่มสำเร็จ
+    // 5. แจ้ง Parent Component ว่าเพิ่มสำเร็จ
     emit('order-added')
     emit('close')
 
