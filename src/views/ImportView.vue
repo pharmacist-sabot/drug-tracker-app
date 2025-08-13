@@ -67,7 +67,6 @@
 </template>
 
 <script setup>
-// ... (script section remains unchanged)
 import { ref } from 'vue'
 import Papa from 'papaparse'
 import { supabase } from '../supabase/client'
@@ -85,7 +84,8 @@ const csvHeaderMapping = {
   strength: 'ความแรง',
   quantity: 'ปริมาณที่ต้องจัดซื้อ',
   unitCount: 'หน่วยนับ',
-  pricePerUnit: 'ราคา',
+  packaging: 'บรรจุภัณฑ์', 
+  pricePerUnit: 'ราคา (บาท)', 
   totalPrice: 'ราคารวม',
 }
 
@@ -177,6 +177,7 @@ const processData = async (data, fileName) => {
         import_batch_id: batchData.id,
         supplier_id: supplierData.id,
         drug_id: drugData.id,
+        packaging: row[csvHeaderMapping.packaging] || null, 
         quantity: parseFloat(String(row[csvHeaderMapping.quantity] || '0').replace(/,/g, '')),
         unit_count: row[csvHeaderMapping.unitCount],
         price_per_unit: parseFloat(

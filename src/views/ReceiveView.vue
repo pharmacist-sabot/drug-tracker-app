@@ -27,7 +27,10 @@
           <tr v-for="order in orders" :key="order.id">
             <td>
               <div class="drug-name">{{ order.drugs.name }}</div>
-              <div class="drug-detail">{{ order.drugs.form }} {{ order.drugs.strength }}</div>
+              <div class="drug-detail">
+                {{ order.drugs.form }} {{ order.drugs.strength }}
+                <span v-if="order.packaging">({{ order.packaging }})</span>
+              </div>
             </td>
             <td>{{ order.suppliers.name }}</td>
             <td>{{ formatDate(order.order_date) }}</td>
@@ -55,7 +58,6 @@
 </template>
 
 <script setup>
-// ... (script section remains unchanged)
 import { ref, onMounted } from 'vue'
 import { supabase } from '../supabase/client'
 
@@ -67,7 +69,7 @@ const fetchOrdersToReceive = async () => {
   try {
     const { data, error: dbError } = await supabase
       .from('purchase_orders')
-      .select('id, order_date, drugs (*), suppliers (*)')
+      .select('id, order_date, packaging, drugs (*), suppliers (*)') 
       .eq('status', 'สั่งแล้ว')
       .order('order_date', { ascending: true })
 
@@ -114,7 +116,6 @@ onMounted(fetchOrdersToReceive)
 </script>
 
 <style scoped>
-/* Scoped styles are now minimal because they are handled globally */
 .action-column {
   width: 200px;
 }

@@ -34,7 +34,10 @@
             <tr v-for="order in filteredOrders" :key="order.id">
               <td>
                 <div class="drug-name">{{ order.drugs.name }}</div>
-                <div class="drug-detail">{{ order.drugs.form }} {{ order.drugs.strength }}</div>
+                <div class="drug-detail">
+                  {{ order.drugs.form }} {{ order.drugs.strength }}
+                  <span v-if="order.packaging">({{ order.packaging }})</span>
+                </div>
               </td>
               <td>{{ order.suppliers.name }}</td>
               <td>
@@ -72,7 +75,7 @@ const fetchHistory = async () => {
   try {
     const { data, error: dbError } = await supabase
       .from('purchase_orders')
-      .select('status, order_date, received_date, drugs (*), suppliers (*)')
+      .select('status, order_date, received_date, packaging, drugs (*), suppliers (*)') 
       .order('created_at', { ascending: false })
     if (dbError) throw dbError
     allOrders.value = data

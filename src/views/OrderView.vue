@@ -46,7 +46,10 @@
             </td>
             <td>
               <div class="drug-name">{{ order.drugs.name }}</div>
-              <div class="drug-detail">{{ order.drugs.form }} {{ order.drugs.strength }}</div>
+              <div class="drug-detail">
+                {{ order.drugs.form }} {{ order.drugs.strength }}
+                <span v-if="order.packaging">({{ order.packaging }})</span>
+              </div>
             </td>
             <td>{{ order.suppliers.name }}</td>
             <td>{{ order.quantity }} x {{ order.unit_count }}</td>
@@ -78,27 +81,23 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { supabase } from '../supabase/client'
-
-// Import Components ที่จำเป็น
 import AddOrderForm from '../components/AddOrderForm.vue'
 import OrderSummaryModal from '../components/OrderSummaryModal.vue'
 
-// --- State (ตัวแปรเก็บสถานะต่างๆ) ---
-const orders = ref([]) // เก็บรายการยาทั้งหมดที่ต้องสั่ง
-const loading = ref(true) // สถานะกำลังโหลดข้อมูล
-const error = ref(null) // ข้อความ error
-const showAddForm = ref(false) // สถานะการแสดงฟอร์มเพิ่มรายการ
-const selectedOrderIds = ref(new Set()) // เก็บ ID ของรายการที่ถูกเลือกด้วย Checkbox
-const isModalVisible = ref(false) // สถานะการแสดง Modal สรุปรายการ
+const orders = ref([])
+const loading = ref(true)
+const error = ref(null)
+const showAddForm = ref(false)
+const selectedOrderIds = ref(new Set())
+const isModalVisible = ref(false)
 
-// --- ฟังก์ชันสำหรับดึงข้อมูล ---
 const fetchOrdersToBuy = async () => {
   try {
     loading.value = true
     error.value = null
     const { data, error: dbError } = await supabase
       .from('purchase_orders')
-      .select('id, quantity, unit_count, price_per_unit, total_price, drugs (*), suppliers (*)')
+      .select('id, quantity, unit_count, price_per_unit, total_price, packaging, drugs (*), suppliers (*)') // <-- เพิ่ม packaging
       .eq('status', 'ต้องสั่งซื้อ')
       .order('created_at', { ascending: true })
 
@@ -111,17 +110,12 @@ const fetchOrdersToBuy = async () => {
   }
 }
 
-// --- Computed Properties (ค่าที่คำนวณจาก State อื่นๆ) ---
-
-// ตรวจสอบว่ารายการทั้งหมดถูกเลือกหรือไม่ (สำหรับ Checkbox 'เลือกทั้งหมด')
 const isAllSelected = computed(() => {
     return orders.value.length > 0 && selectedOrderIds.value.size === orders.value.length;
 });
 
-// จัดกลุ่มรายการที่ถูกเลือกตามชื่อบริษัท (สำหรับส่งให้ Modal)
 const groupedSelectedOrders = computed(() => {
     const grouped = {}
-    // กรองเอาเฉพาะรายการที่ ID อยู่ใน selectedOrderIds
     const selected = orders.value.filter(o => selectedOrderIds.value.has(o.id));
     
     selected.forEach(order => {
@@ -134,46 +128,35 @@ const groupedSelectedOrders = computed(() => {
     return grouped
 })
 
-// --- Methods (ฟังก์ชันจัดการ Event ต่างๆ) ---
-
-// จัดการเมื่อกด Checkbox 'เลือกทั้งหมด'
 const toggleSelectAll = (event) => {
     if (event.target.checked) {
-        // ถ้าถูกติ๊ก ให้เอา ID ของทุกรายการมาใส่ใน Set
         selectedOrderIds.value = new Set(orders.value.map(o => o.id));
     } else {
-        // ถ้าเอาติ๊กออก ให้ล้าง Set ทั้งหมด
         selectedOrderIds.value.clear();
     }
 }
 
-// เปิด Modal สรุปรายการ
 const openSummaryModal = () => {
     if (selectedOrderIds.value.size > 0) {
       isModalVisible.value = true
     }
 }
 
-// จัดการเมื่อฟอร์ม AddOrderForm เพิ่มรายการสำเร็จ
 const handleOrderAdded = () => {
   showAddForm.value = false
-  fetchOrdersToBuy() // ดึงข้อมูลใหม่เพื่อแสดงรายการล่าสุด
+  fetchOrdersToBuy()
 }
 
-// จัดการเมื่อ Modal ส่งคำสั่งซื้อสำเร็จ
 const handleOrdersSent = () => {
-    isModalVisible.value = false // ปิด Modal
-    selectedOrderIds.value.clear() // ล้างรายการที่เลือกไว้
-    fetchOrdersToBuy() // ดึงข้อมูลใหม่ (รายการที่สั่งแล้วจะหายไป)
+    isModalVisible.value = false
+    selectedOrderIds.value.clear()
+    fetchOrdersToBuy()
 }
 
-// --- Lifecycle Hook ---
-// เรียกใช้ฟังก์ชัน fetchOrdersToBuy เมื่อ Component ถูกสร้างขึ้น
 onMounted(fetchOrdersToBuy)
 </script>
 
 <style scoped>
-/* Scoped styles สำหรับหน้านี้โดยเฉพาะ */
 .header-actions {
   display: flex;
   justify-content: flex-end;
@@ -191,12 +174,10 @@ onMounted(fetchOrdersToBuy)
   cursor: pointer;
 }
 
-/* ทำให้แถวที่ถูกเลือกมีสีพื้นหลังแตกต่าง */
 .selected-row {
   background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
 }
 .selected-row td {
-  /* เพิ่ม transition เพื่อความสวยงาม */
   transition: background-color 0.2s ease-in-out;
 }
 
@@ -204,7 +185,6 @@ onMounted(fetchOrdersToBuy)
   position: fixed;
   bottom: 0;
   left: 50%;
-  /* ซ่อนไว้ด้านล่างจอในตอนแรก */
   transform: translate(-50%, 120%);
   background-color: var(--card-bg-color);
   padding: 1rem 1.5rem;
@@ -217,7 +197,6 @@ onMounted(fetchOrdersToBuy)
   z-index: 1500;
 }
 
-/* เมื่อมี class 'visible' ให้เลื่อนขึ้นมาแสดง */
 .floating-bar.visible {
     transform: translate(-50%, -20px);
 }
