@@ -47,7 +47,7 @@
                 class="btn btn-primary"
                 :disabled="!order.received_date_input || order.isSaving"
               >
-                {{ order.isSaving ? 'กำลังบันทึก...' : 'บันทึกการรับของ' }}
+                {{ order.isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
             </td>
           </tr>

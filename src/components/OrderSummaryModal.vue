@@ -1,5 +1,6 @@
 <!-- src/components/OrderSummaryModal.vue -->
 <template>
+  <!-- ส่วน Template ไม่มีการเปลี่ยนแปลง -->
   <div class="modal-backdrop" @click.self="$emit('close')">
     <div class="modal-content card">
       <header class="modal-header">
@@ -76,13 +77,22 @@ const confirmAndSend = async () => {
 
   try {
     const separator = '—'.repeat(35) + '\n'
-
+    const orderDate = new Date();
+    const dateForTelegram = escapeMarkdownV2(
+      orderDate.toLocaleDateString('th-TH', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })
+    );
+    const dateForDatabase = orderDate.toISOString().split('T')[0]; 
     for (const supplierName in props.groupedOrders) {
       const group = props.groupedOrders[supplierName]
       const safeSupplierName = escapeMarkdownV2(supplierName)
 
       let message = `*📝 ใบสั่งซื้อยาถึง บ\\. ${safeSupplierName}*\n\n`
-      message += `จาก: *โรงพยาบาลสระโบสถ์ จังหวัดลพบุรี*\n\n`
+      message += `จาก: *โรงพยาบาลสระโบสถ์ จังหวัดลพบุรี*\n`
+      message += `*วันที่สั่งซื้อ:* ${dateForTelegram}\n\n` 
 
       group.orders.forEach((order, index) => {
         const drugName = escapeMarkdownV2(order.drugs.name)
@@ -98,7 +108,7 @@ const confirmAndSend = async () => {
         if (strength) message += ` \\(${strength}\\)`
         
         if (packaging) {
-            message += `\n   _บรรจุภัณฑ์: ${packaging}_`
+            message += `\n   _หน่วยนับ: ${packaging}_`
         }
 
         message += `\n   _จำนวน: ${quantity} x ${unit}_\n` 
@@ -118,10 +128,9 @@ const confirmAndSend = async () => {
       }
     }
 
-    const today = new Date().toISOString().split('T')[0]
     const { error: dbError } = await supabase
       .from('purchase_orders')
-      .update({ status: 'สั่งแล้ว', order_date: today })
+      .update({ status: 'สั่งแล้ว', order_date: dateForDatabase }) 
       .in('id', allOrderedIds)
     
     if (dbError) {
@@ -141,7 +150,6 @@ const confirmAndSend = async () => {
 </script>
 
 <style scoped>
-/* Scoped styles สำหรับ Modal นี้โดยเฉพาะ */
 .modal-backdrop {
   position: fixed;
   top: 0;

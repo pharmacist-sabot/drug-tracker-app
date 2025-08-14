@@ -14,7 +14,7 @@
         </div>
         <div class="form-group">
           <label for="form">รูปแบบยา</label>
-          <input id="form" v-model="form.form" type="text" class="form-input" placeholder="เช่น Tablet, Capsule" />
+          <input id="form" v-model="form.form" type="text" class="form-input" placeholder="เช่น tab, inj" />
         </div>
         <div class="form-group">
           <label for="strength">ความแรง</label>
@@ -26,7 +26,7 @@
         </div>
         <div class="form-group">
           <label for="unitCount">หน่วยนับ</label>
-          <input id="unitCount" v-model="form.unitCount" type="text" class="form-input" required placeholder="เช่น กล่อง, ขวด"/>
+          <input id="unitCount" v-model="form.unitCount" type="text" class="form-input" required placeholder="เช่น 1, 100"/>
         </div>
         <div class="form-group">
           <label for="pricePerUnit">ราคาต่อหน่วย</label>
