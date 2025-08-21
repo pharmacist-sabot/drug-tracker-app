@@ -65,8 +65,9 @@ const emit = defineEmits(['close', 'orders-sent'])
 const isSending = ref(false)
 const error = ref(null)
 
+// แก้ไขฟังก์ชันนี้ให้รับค่า null หรือ undefined ได้อย่างปลอดภัย
 function escapeMarkdownV2(text) {
-  const str = String(text || ''); 
+  const str = String(text || ''); // ป้องกัน error ถ้า text เป็น null/undefined
   return str.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
 }
 
@@ -100,8 +101,7 @@ const confirmAndSend = async () => {
         const strength = escapeMarkdownV2(order.drugs.strength)
         const packaging = escapeMarkdownV2(order.packaging)
         const quantity = escapeMarkdownV2(order.quantity)
-        const unitCountAsNumber = parseInt(order.unit_count, 10) || 1;
-        const unit = escapeMarkdownV2(unitCountAsNumber);
+        const unit = escapeMarkdownV2(order.unit_count);
         
         message += `*${index + 1}\\. ${drugName}*`
         if (form) message += ` \\[${form}\\]`
@@ -115,6 +115,8 @@ const confirmAndSend = async () => {
 
         allOrderedIds.push(order.id)
       })
+
+        message += `\n*หมายเหตุ: บิลไม่ลงวันที่*\n`
 
       const { data: functionResponse, error: functionError } = await supabase.functions.invoke('send-telegram-notify', {
         body: { message },

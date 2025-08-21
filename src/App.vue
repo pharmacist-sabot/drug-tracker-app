@@ -5,6 +5,7 @@
     <main class="content">
       <router-view />
     </main>
+    <Notification />
   </div>
   <AuthView v-else />
 </template>
@@ -14,6 +15,7 @@ import { ref, onMounted } from 'vue'
 import { supabase } from './supabase/client'
 import NavBar from './components/NavBar.vue'
 import AuthView from './views/AuthView.vue'
+import Notification from './components/Notification.vue'
 
 const session = ref(null)
 

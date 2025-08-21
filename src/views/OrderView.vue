@@ -83,6 +83,7 @@ import { ref, onMounted, computed } from 'vue'
 import { supabase } from '../supabase/client'
 import AddOrderForm from '../components/AddOrderForm.vue'
 import OrderSummaryModal from '../components/OrderSummaryModal.vue'
+import { useNotificationStore } from '@/stores/notification'
 
 const orders = ref([])
 const loading = ref(true)
@@ -90,6 +91,7 @@ const error = ref(null)
 const showAddForm = ref(false)
 const selectedOrderIds = ref(new Set())
 const isModalVisible = ref(false)
+const notificationStore = useNotificationStore()
 
 const fetchOrdersToBuy = async () => {
   try {
@@ -144,12 +146,14 @@ const openSummaryModal = () => {
 
 const handleOrderAdded = () => {
   showAddForm.value = false
+  notificationStore.showNotification({ message: 'เพิ่มรายการใหม่เรียบร้อย!', type: 'success' })
   fetchOrdersToBuy()
 }
 
 const handleOrdersSent = () => {
     isModalVisible.value = false
     selectedOrderIds.value.clear()
+    notificationStore.showNotification({ message: 'ส่งคำสั่งซื้อสำเร็จ!', type: 'success' })
     fetchOrdersToBuy()
 }
 

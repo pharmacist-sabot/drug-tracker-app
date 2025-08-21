@@ -60,10 +60,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { supabase } from '../supabase/client'
+import { useNotificationStore } from '@/stores/notification'
 
 const orders = ref([])
 const loading = ref(true)
 const error = ref(null)
+const notificationStore = useNotificationStore()
 
 const fetchOrdersToReceive = async () => {
   try {
@@ -84,7 +86,10 @@ const fetchOrdersToReceive = async () => {
 
 const markAsReceived = async (order) => {
   if (!order.received_date_input) {
-    alert('กรุณาเลือกวันที่รับของ')
+    notificationStore.showNotification({ // <-- เปลี่ยนจาก alert
+      message: 'กรุณาเลือกวันที่รับของ',
+      type: 'error',
+    })
     return
   }
 
@@ -99,10 +104,14 @@ const markAsReceived = async (order) => {
     .eq('id', order.id)
 
   if (updateError) {
-    alert(`เกิดข้อผิดพลาดในการบันทึก: ${updateError.message}`)
+    notificationStore.showNotification({ 
+      message: `เกิดข้อผิดพลาด: ${updateError.message}`,
+      type: 'error',
+    })
     order.isSaving = false
   } else {
     orders.value = orders.value.filter((o) => o.id !== order.id)
+    notificationStore.showNotification({ message: 'บันทึกการรับของเรียบร้อย!', type: 'success' })
   }
 }
 
