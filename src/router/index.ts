@@ -1,18 +1,20 @@
-// src/router/index.ts
-import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
-import { supabase } from '@/supabase/client'
+import type { RouteRecordRaw } from 'vue-router';
 
-import AuthView from '@/views/AuthView.vue'
-import ImportView from '@/views/ImportView.vue'
-import OrderView from '@/views/OrderView.vue'
-import ReceiveView from '@/views/ReceiveView.vue'
-import HistoryView from '@/views/HistoryView.vue'
+// src/router/index.ts
+import { createRouter, createWebHistory } from 'vue-router';
+
+import { supabase } from '@/supabase/client';
+import AuthView from '@/views/AuthView.vue';
+import HistoryView from '@/views/HistoryView.vue';
+import ImportView from '@/views/ImportView.vue';
+import OrderView from '@/views/OrderView.vue';
+import ReceiveView from '@/views/ReceiveView.vue';
 
 // Augment route meta typing
 declare module 'vue-router' {
+  // eslint-disable-next-line ts/consistent-type-definitions
   interface RouteMeta {
-    requiresAuth?: boolean
+    requiresAuth?: boolean;
   }
 }
 
@@ -46,29 +48,31 @@ const routes: readonly RouteRecordRaw[] = [
     component: HistoryView,
     meta: { requiresAuth: true },
   },
-] as const
+] as const;
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [...routes],
-})
+});
 
 // Navigation guard — redirects unauthenticated users to Auth,
 // and authenticated users away from the Auth page.
 router.beforeEach(async (to, _from, next) => {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await supabase.auth.getSession();
 
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
   if (requiresAuth && !session) {
-    next({ name: 'Auth' })
-  } else if (to.name === 'Auth' && session) {
-    next({ name: 'Import' })
-  } else {
-    next()
+    next({ name: 'Auth' });
   }
-})
+  else if (to.name === 'Auth' && session) {
+    next({ name: 'Import' });
+  }
+  else {
+    next();
+  }
+});
 
-export default router
+export default router;

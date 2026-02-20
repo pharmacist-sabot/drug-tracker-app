@@ -1,22 +1,22 @@
+import { defineStore } from 'pinia';
 // src/stores/counter.ts
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import { computed, ref } from 'vue';
 
 export const useCounterStore = defineStore('counter', () => {
-  const count = ref<number>(0)
-  const doubleCount = computed<number>(() => count.value * 2)
+  const count = ref<number>(0);
+  const doubleCount = computed<number>(() => count.value * 2);
 
   function increment(): void {
-    count.value++
+    count.value++;
   }
 
   function decrement(): void {
-    count.value--
+    count.value--;
   }
 
   function reset(): void {
-    count.value = 0
+    count.value = 0;
   }
 
-  return { count, doubleCount, increment, decrement, reset }
-})
+  return { count, doubleCount, increment, decrement, reset };
+});

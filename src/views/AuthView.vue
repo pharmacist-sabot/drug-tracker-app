@@ -1,28 +1,89 @@
 <!-- src/views/AuthView.vue -->
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+import { supabase } from '@/supabase/client';
+
+const email = ref<string>('');
+const password = ref<string>('');
+const message = ref<string>('');
+const isLoading = ref<boolean>(false);
+const router = useRouter();
+
+async function handleLogin(): Promise<void> {
+  isLoading.value = true;
+  message.value = '';
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value,
+    });
+    if (error)
+      throw error;
+    router.push('/');
+  }
+  catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    message.value = `เกิดข้อผิดพลาด: ${errorMessage}`;
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+
+async function handleRegister(): Promise<void> {
+  isLoading.value = true;
+  message.value = '';
+  try {
+    const { error } = await supabase.auth.signUp({
+      email: email.value,
+      password: password.value,
+    });
+    if (error)
+      throw error;
+    router.push('/');
+  }
+  catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    message.value = `เกิดข้อผิดพลาด: ${errorMessage}`;
+  }
+  finally {
+    isLoading.value = false;
+  }
+}
+</script>
+
 <template>
   <div class="auth-container">
     <div class="auth-card card">
-      <h1 class="title">DrugTracker System</h1>
-      <p class="subtitle">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
+      <h1 class="title">
+        DrugTracker System
+      </h1>
+      <p class="subtitle">
+        กรุณาเข้าสู่ระบบเพื่อใช้งาน
+      </p>
 
-      <div v-if="message" class="message">{{ message }}</div>
+      <div v-if="message" class="message">
+        {{ message }}
+      </div>
 
       <form @submit.prevent>
         <div class="form-group">
           <label for="email">อีเมล</label>
-          <input id="email" v-model="email" type="email" placeholder="you@example.com" class="form-input" />
+          <input id="email" v-model="email" type="email" placeholder="you@example.com" class="form-input">
         </div>
 
         <div class="form-group">
           <label for="password">รหัสผ่าน</label>
-          <input id="password" v-model="password" type="password" placeholder="••••••••" class="form-input" />
+          <input id="password" v-model="password" type="password" placeholder="••••••••" class="form-input">
         </div>
 
         <div class="button-group">
-          <button @click="handleLogin" class="btn btn-primary" :disabled="isLoading">
+          <button class="btn btn-primary" :disabled="isLoading" @click="handleLogin">
             {{ isLoading ? 'กำลังโหลด...' : 'เข้าสู่ระบบ' }}
           </button>
-          <button @click="handleRegister" class="btn btn-secondary" :disabled="isLoading">
+          <button class="btn btn-secondary" :disabled="isLoading" @click="handleRegister">
             ลงทะเบียน
           </button>
         </div>
@@ -30,54 +91,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-import { supabase } from '@/supabase/client'
-import { useRouter } from 'vue-router'
-
-const email = ref<string>('')
-const password = ref<string>('')
-const message = ref<string>('')
-const isLoading = ref<boolean>(false)
-const router = useRouter()
-
-const handleLogin = async (): Promise<void> => {
-  isLoading.value = true
-  message.value = ''
-  try {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.value,
-      password: password.value,
-    })
-    if (error) throw error
-    router.push('/')
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
-    message.value = `เกิดข้อผิดพลาด: ${errorMessage}`
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const handleRegister = async (): Promise<void> => {
-  isLoading.value = true
-  message.value = ''
-  try {
-    const { error } = await supabase.auth.signUp({
-      email: email.value,
-      password: password.value,
-    })
-    if (error) throw error
-    router.push('/')
-  } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
-    message.value = `เกิดข้อผิดพลาด: ${errorMessage}`
-  } finally {
-    isLoading.value = false
-  }
-}
-</script>
 
 <style scoped>
 .auth-container {

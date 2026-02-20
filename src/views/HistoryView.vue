@@ -1,18 +1,128 @@
 <!-- src/views/HistoryView.vue -->
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue';
+
+import type { HistoryViewOrder, PurchaseOrderStatus } from '@/types/database';
+
+import { supabase } from '@/supabase/client';
+
+// ─────────────────────────────────────────────
+// Reactive state
+// ─────────────────────────────────────────────
+
+const allOrders = ref<HistoryViewOrder[]>([]);
+const searchTerm = ref<string>('');
+const loading = ref<boolean>(true);
+const error = ref<string | null>(null);
+
+// ─────────────────────────────────────────────
+// Computed
+// ─────────────────────────────────────────────
+
+/**
+ * Filters orders by the search term against the drug name (case-insensitive).
+ * Returns all orders when the search term is empty.
+ */
+const filteredOrders = computed<HistoryViewOrder[]>(() => {
+  const term = searchTerm.value.trim().toLowerCase();
+
+  if (!term) {
+    return allOrders.value;
+  }
+
+  return allOrders.value.filter(order =>
+    order.drugs.name.toLowerCase().includes(term),
+  );
+});
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+
+/**
+ * Formats an ISO date string into a Thai locale short date.
+ * Returns an em-dash when the value is falsy.
+ */
+function formatDate(dateString: string | null | undefined): string {
+  if (!dateString)
+    return '—';
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  };
+
+  return new Date(dateString).toLocaleDateString('th-TH', options);
+}
+
+/**
+ * Maps a purchase order status to a CSS class for the status badge.
+ */
+function getStatusClass(status: PurchaseOrderStatus): string {
+  switch (status) {
+    case 'รับของแล้ว':
+      return 'status-received';
+    case 'สั่งแล้ว':
+      return 'status-ordered';
+    case 'ต้องสั่งซื้อ':
+    default:
+      return 'status-pending';
+  }
+}
+
+// ─────────────────────────────────────────────
+// Data fetching
+// ─────────────────────────────────────────────
+
+async function fetchHistory(): Promise<void> {
+  try {
+    const { data, error: dbError } = await supabase
+      .from('purchase_orders')
+      .select('id, status, order_date, received_date, packaging, drugs (*), suppliers (*)')
+      .order('created_at', { ascending: false });
+
+    if (dbError)
+      throw dbError;
+
+    allOrders.value = (data ?? []) as unknown as HistoryViewOrder[];
+  }
+  catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    error.value = `เกิดข้อผิดพลาดในการดึงข้อมูล: ${message}`;
+  }
+  finally {
+    loading.value = false;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Lifecycle
+// ─────────────────────────────────────────────
+
+onMounted(fetchHistory);
+</script>
+
 <template>
   <div class="page-container">
     <header class="page-header">
       <h1>ประวัติการสั่งซื้อทั้งหมด</h1>
-      <p class="subtitle">ดูและค้นหารายการสั่งซื้อที่ผ่านมาทั้งหมดในระบบ</p>
+      <p class="subtitle">
+        ดูและค้นหารายการสั่งซื้อที่ผ่านมาทั้งหมดในระบบ
+      </p>
     </header>
 
     <div class="card">
       <div class="controls">
-        <input type="text" v-model="searchTerm" placeholder="ค้นหาตามชื่อยา..." class="form-input search-input" />
+        <input v-model="searchTerm" type="text" placeholder="ค้นหาตามชื่อยา..." class="form-input search-input">
       </div>
 
-      <div v-if="loading" class="loading-state">กำลังโหลดข้อมูล...</div>
-      <div v-else-if="error" class="error-state">{{ error }}</div>
+      <div v-if="loading" class="loading-state">
+        กำลังโหลดข้อมูล...
+      </div>
+      <div v-else-if="error" class="error-state">
+        {{ error }}
+      </div>
 
       <div v-else class="table-container">
         <table>
@@ -28,7 +138,9 @@
           <tbody v-if="filteredOrders.length > 0">
             <tr v-for="order in filteredOrders" :key="order.id">
               <td>
-                <div class="drug-name">{{ order.drugs.name }}</div>
+                <div class="drug-name">
+                  {{ order.drugs.name }}
+                </div>
                 <div class="drug-detail">
                   {{ order.drugs.form }} {{ order.drugs.strength }}
                   <span v-if="order.packaging">({{ order.packaging }})</span>
@@ -52,104 +164,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { supabase } from '@/supabase/client'
-import type { HistoryViewOrder, PurchaseOrderStatus } from '@/types/database'
-
-// ─────────────────────────────────────────────
-// Reactive state
-// ─────────────────────────────────────────────
-
-const allOrders = ref<HistoryViewOrder[]>([])
-const searchTerm = ref<string>('')
-const loading = ref<boolean>(true)
-const error = ref<string | null>(null)
-
-// ─────────────────────────────────────────────
-// Computed
-// ─────────────────────────────────────────────
-
-/**
- * Filters orders by the search term against the drug name (case-insensitive).
- * Returns all orders when the search term is empty.
- */
-const filteredOrders = computed<HistoryViewOrder[]>(() => {
-  const term = searchTerm.value.trim().toLowerCase()
-
-  if (!term) {
-    return allOrders.value
-  }
-
-  return allOrders.value.filter((order) =>
-    order.drugs.name.toLowerCase().includes(term),
-  )
-})
-
-// ─────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────
-
-/**
- * Formats an ISO date string into a Thai locale short date.
- * Returns an em-dash when the value is falsy.
- */
-function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) return '—'
-
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }
-
-  return new Date(dateString).toLocaleDateString('th-TH', options)
-}
-
-/**
- * Maps a purchase order status to a CSS class for the status badge.
- */
-function getStatusClass(status: PurchaseOrderStatus): string {
-  switch (status) {
-    case 'รับของแล้ว':
-      return 'status-received'
-    case 'สั่งแล้ว':
-      return 'status-ordered'
-    case 'ต้องสั่งซื้อ':
-    default:
-      return 'status-pending'
-  }
-}
-
-// ─────────────────────────────────────────────
-// Data fetching
-// ─────────────────────────────────────────────
-
-async function fetchHistory(): Promise<void> {
-  try {
-    const { data, error: dbError } = await supabase
-      .from('purchase_orders')
-      .select('id, status, order_date, received_date, packaging, drugs (*), suppliers (*)')
-      .order('created_at', { ascending: false })
-
-    if (dbError) throw dbError
-
-    allOrders.value = (data ?? []) as unknown as HistoryViewOrder[]
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
-    error.value = `เกิดข้อผิดพลาดในการดึงข้อมูล: ${message}`
-  } finally {
-    loading.value = false
-  }
-}
-
-// ─────────────────────────────────────────────
-// Lifecycle
-// ─────────────────────────────────────────────
-
-onMounted(fetchHistory)
-</script>
 
 <style scoped>
 .controls {

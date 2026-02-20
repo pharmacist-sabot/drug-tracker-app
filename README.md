@@ -18,27 +18,27 @@ Built with a robust technology stack, this application leverages the power of Vu
 
 ## ✨ Key Features
 
-*   **Bulk Order Creation via CSV**: Easily upload a CSV file containing a list of required drugs to initiate the procurement process quickly.
-*   **End-to-End Order Tracking**: Manage the complete status of orders, from 'Ordered' to 'Delivered'. A simple interface allows users to update the status upon receiving goods.
-*   **Real-Time Telegram Notifications**: Automatically sends notifications to a designated Telegram channel or user when a new order is placed, keeping the team informed.
-*   **Comprehensive Order History**: A dedicated history view provides a detailed log of all past and current orders, complete with statuses and timestamps, for easy tracking and auditing.
-*   **Reactive Frontend**: Built with Vue 3 (Composition API) for a highly performant and maintainable user interface.
-*   **Rapid Development**: Powered by Vite, offering lightning-fast Hot Module Replacement (HMR) and optimized build processes.
-*   **Scalable Backend**: Integrated with Supabase, providing database, authentication, and storage solutions out-of-the-box.
-*   **Centralized State Management**: Utilizes Pinia for predictable and debuggable state.
-*   **Deployment Ready**: Comes with a pre-defined configuration for seamless deployment to Firebase Hosting.
+- **Bulk Order Creation via CSV**: Easily upload a CSV file containing a list of required drugs to initiate the procurement process quickly.
+- **End-to-End Order Tracking**: Manage the complete status of orders, from 'Ordered' to 'Delivered'. A simple interface allows users to update the status upon receiving goods.
+- **Real-Time Telegram Notifications**: Automatically sends notifications to a designated Telegram channel or user when a new order is placed, keeping the team informed.
+- **Comprehensive Order History**: A dedicated history view provides a detailed log of all past and current orders, complete with statuses and timestamps, for easy tracking and auditing.
+- **Reactive Frontend**: Built with Vue 3 (Composition API) for a highly performant and maintainable user interface.
+- **Rapid Development**: Powered by Vite, offering lightning-fast Hot Module Replacement (HMR) and optimized build processes.
+- **Scalable Backend**: Integrated with Supabase, providing database, authentication, and storage solutions out-of-the-box.
+- **Centralized State Management**: Utilizes Pinia for predictable and debuggable state.
+- **Deployment Ready**: Comes with a pre-defined configuration for seamless deployment to Firebase Hosting.
 
 ## 🛠️ Technology Stack
 
-| Category      | Technology                                    |
-| ------------- | --------------------------------------------- |
-| **Frontend**  | Vue.js 3, Vue Router 4                        |
-| **Backend**   | Supabase (PostgreSQL, Auth)                   |
-| **Build Tool**| Vite                                          |
-| **State Mgt.**| Pinia                                         |
-| **Linting**   | ESLint                                        |
-| **Formatting**| Prettier                                      |
-| **Deployment**| Firebase Hosting                              |
+| Category       | Technology                  |
+| -------------- | --------------------------- |
+| **Frontend**   | Vue.js 3, Vue Router 4      |
+| **Backend**    | Supabase (PostgreSQL, Auth) |
+| **Build Tool** | Vite                        |
+| **State Mgt.** | Pinia                       |
+| **Linting**    | ESLint                      |
+| **Formatting** | Prettier                    |
+| **Deployment** | Firebase Hosting            |
 
 ## 🚀 Getting Started
 
@@ -46,30 +46,35 @@ Follow these instructions to set up the project on your local machine for develo
 
 ### Prerequisites
 
-*   **Node.js**: Version `^20.19.0` or `>=22.12.0` as specified in `package.json`.
-*   **npm** or **pnpm** package manager.
-*   **Supabase Account**: You will need a Supabase account and a project set up to get the required API keys.
-*   **Telegram Bot**: A Telegram Bot Token and Chat ID for sending notifications.
+- **Node.js**: Version `^20.19.0` or `>=22.12.0` as specified in `package.json`.
+- **npm** or **pnpm** package manager.
+- **Supabase Account**: You will need a Supabase account and a project set up to get the required API keys.
+- **Telegram Bot**: A Telegram Bot Token and Chat ID for sending notifications.
 
 ### Installation
 
 1.  **Clone the repository:**
+
     ```bash
     git clone https://github.com/pharmacist-sabot/drug-tracker-app.git
     cd drug-tracker-app
     ```
 
 2.  **Install dependencies:**
+
     ```bash
     npm install
     ```
 
 3.  **Set up environment variables:**
     Create a `.env` file in the root of the project by copying the `.env.example` file.
+
     ```bash
     cp .env.example .env
     ```
+
     Then, fill in your credentials in the `.env` file:
+
     ```env
     # .env
     VITE_SUPABASE_URL="YOUR_SUPABASE_PROJECT_URL"
@@ -85,13 +90,13 @@ Follow these instructions to set up the project on your local machine for develo
 
 ## 📜 Available Scripts
 
-| Script        | Description                                           |
-| ------------- | ----------------------------------------------------- |
-| `npm run dev`     | Starts the Vite development server with HMR.        |
-| `npm run build`   | Compiles and bundles the app for production.        |
-| `npm run preview` | Serves the production build locally for preview.    |
-| `npm run lint`    | Lints files and attempts to fix issues. |
-| `npm run format`  | Formats all source files using Prettier.            |
+| Script            | Description                                      |
+| ----------------- | ------------------------------------------------ |
+| `npm run dev`     | Starts the Vite development server with HMR.     |
+| `npm run build`   | Compiles and bundles the app for production.     |
+| `npm run preview` | Serves the production build locally for preview. |
+| `npm run lint`    | Lints files and attempts to fix issues.          |
+| `npm run format`  | Formats all source files using Prettier.         |
 
 ## 📦 Build & Deployment
 
@@ -133,4 +138,3 @@ Contributions are welcome! If you would like to contribute to this project, plea
 ## 📄 License
 
 This project is licensed under the **MIT License**.
-

@@ -1,18 +1,20 @@
 <!-- src/components/Notification.vue -->
+<script setup lang="ts">
+import { useNotificationStore } from '@/stores/notification';
+
+const notificationStore = useNotificationStore();
+</script>
+
 <template>
   <Transition name="toast">
     <div v-if="notificationStore.isVisible" class="notification" :class="notificationStore.type">
       {{ notificationStore.message }}
-      <button @click="notificationStore.hideNotification()" class="close-btn">&times;</button>
+      <button class="close-btn" @click="notificationStore.hideNotification()">
+        &times;
+      </button>
     </div>
   </Transition>
 </template>
-
-<script setup lang="ts">
-import { useNotificationStore } from '@/stores/notification'
-
-const notificationStore = useNotificationStore()
-</script>
 
 <style scoped>
 .notification {

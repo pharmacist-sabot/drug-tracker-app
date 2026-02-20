@@ -1,60 +1,15 @@
 <!-- src/components/AddOrderForm.vue -->
-<template>
-  <div class="card add-form-card">
-    <h3>เพิ่มรายการสั่งซื้อด้วยตนเอง</h3>
-    <form @submit.prevent="handleSubmit">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="drugName">ชื่อยา</label>
-          <input id="drugName" v-model="form.drugName" type="text" class="form-input" required />
-        </div>
-        <div class="form-group">
-          <label for="supplierName">บริษัท</label>
-          <input id="supplierName" v-model="form.supplierName" type="text" class="form-input" required />
-        </div>
-        <div class="form-group">
-          <label for="form">รูปแบบยา</label>
-          <input id="form" v-model="form.form" type="text" class="form-input" placeholder="เช่น tab, inj" />
-        </div>
-        <div class="form-group">
-          <label for="strength">ความแรง</label>
-          <input id="strength" v-model="form.strength" type="text" class="form-input" placeholder="เช่น 500 mg" />
-        </div>
-        <div class="form-group">
-          <label for="quantity">จำนวน</label>
-          <input id="quantity" v-model.number="form.quantity" type="number" class="form-input" required />
-        </div>
-        <div class="form-group">
-          <label for="unitCount">หน่วยนับ</label>
-          <input id="unitCount" v-model="form.unitCount" type="text" class="form-input" required
-            placeholder="เช่น 1, 100" />
-        </div>
-        <div class="form-group">
-          <label for="pricePerUnit">ราคาต่อหน่วย</label>
-          <input id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" step="0.01" class="form-input"
-            required />
-        </div>
-      </div>
-      <div v-if="error" class="error-message">{{ error }}</div>
-      <div class="button-container">
-        <button type="button" class="btn btn-secondary" @click="emit('close')">ยกเลิก</button>
-        <button type="submit" class="btn btn-primary" :disabled="isLoading">
-          {{ isLoading ? 'กำลังบันทึก...' : 'เพิ่มรายการ' }}
-        </button>
-      </div>
-    </form>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { supabase } from '@/supabase/client'
-import type { AddOrderFormData, PurchaseOrderInsert } from '@/types/database'
+import { reactive, ref } from 'vue';
+
+import type { AddOrderFormData, PurchaseOrderInsert } from '@/types/database';
+
+import { supabase } from '@/supabase/client';
 
 const emit = defineEmits<{
-  close: []
-  'order-added': []
-}>()
+  close: [];
+  orderAdded: [];
+}>();
 
 const form = reactive<AddOrderFormData>({
   drugName: '',
@@ -64,16 +19,16 @@ const form = reactive<AddOrderFormData>({
   quantity: 1,
   unitCount: '',
   pricePerUnit: 0,
-})
+});
 
-const isLoading = ref<boolean>(false)
-const error = ref<string | null>(null)
+const isLoading = ref<boolean>(false);
+const error = ref<string | null>(null);
 
-const MANUAL_BATCH_NAME = 'Manual Add' as const
+const MANUAL_BATCH_NAME = 'Manual Add' as const;
 
-const handleSubmit = async (): Promise<void> => {
-  isLoading.value = true
-  error.value = null
+async function handleSubmit(): Promise<void> {
+  isLoading.value = true;
+  error.value = null;
 
   try {
     // 1. Upsert the manual import batch
@@ -81,20 +36,24 @@ const handleSubmit = async (): Promise<void> => {
       .from('import_batches')
       .upsert({ file_name: MANUAL_BATCH_NAME }, { onConflict: 'file_name' })
       .select()
-      .single()
+      .single();
 
-    if (batchError) throw batchError
-    if (!batchData) throw new Error('ไม่สามารถสร้าง batch ได้')
+    if (batchError)
+      throw batchError;
+    if (!batchData)
+      throw new Error('ไม่สามารถสร้าง batch ได้');
 
     // 2. Upsert supplier
     const { data: supplierData, error: supplierError } = await supabase
       .from('suppliers')
       .upsert({ name: form.supplierName.trim() }, { onConflict: 'name' })
       .select()
-      .single()
+      .single();
 
-    if (supplierError) throw supplierError
-    if (!supplierData) throw new Error('ไม่สามารถสร้างข้อมูลบริษัทได้')
+    if (supplierError)
+      throw supplierError;
+    if (!supplierData)
+      throw new Error('ไม่สามารถสร้างข้อมูลบริษัทได้');
 
     // 3. Upsert drug
     const { data: drugData, error: drugError } = await supabase
@@ -108,10 +67,12 @@ const handleSubmit = async (): Promise<void> => {
         { onConflict: 'name,form,strength' },
       )
       .select()
-      .single()
+      .single();
 
-    if (drugError) throw drugError
-    if (!drugData) throw new Error('ไม่สามารถสร้างข้อมูลยาได้')
+    if (drugError)
+      throw drugError;
+    if (!drugData)
+      throw new Error('ไม่สามารถสร้างข้อมูลยาได้');
 
     // 4. Insert purchase order
     const purchaseOrder: PurchaseOrderInsert = {
@@ -123,25 +84,83 @@ const handleSubmit = async (): Promise<void> => {
       price_per_unit: form.pricePerUnit,
       total_price: form.quantity * form.pricePerUnit,
       status: 'ต้องสั่งซื้อ',
-    }
+    };
 
     const { error: orderError } = await supabase
       .from('purchase_orders')
-      .insert(purchaseOrder)
+      .insert(purchaseOrder);
 
-    if (orderError) throw orderError
+    if (orderError)
+      throw orderError;
 
     // 5. Notify parent component
-    emit('order-added')
-    emit('close')
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
-    error.value = `เกิดข้อผิดพลาด: ${message}`
-  } finally {
-    isLoading.value = false
+    emit('orderAdded');
+    emit('close');
+  }
+  catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    error.value = `เกิดข้อผิดพลาด: ${message}`;
+  }
+  finally {
+    isLoading.value = false;
   }
 }
 </script>
+
+<template>
+  <div class="card add-form-card">
+    <h3>เพิ่มรายการสั่งซื้อด้วยตนเอง</h3>
+    <form @submit.prevent="handleSubmit">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="drugName">ชื่อยา</label>
+          <input id="drugName" v-model="form.drugName" type="text" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="supplierName">บริษัท</label>
+          <input id="supplierName" v-model="form.supplierName" type="text" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="form">รูปแบบยา</label>
+          <input id="form" v-model="form.form" type="text" class="form-input" placeholder="เช่น tab, inj">
+        </div>
+        <div class="form-group">
+          <label for="strength">ความแรง</label>
+          <input id="strength" v-model="form.strength" type="text" class="form-input" placeholder="เช่น 500 mg">
+        </div>
+        <div class="form-group">
+          <label for="quantity">จำนวน</label>
+          <input id="quantity" v-model.number="form.quantity" type="number" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="unitCount">หน่วยนับ</label>
+          <input
+            id="unitCount" v-model="form.unitCount" type="text" class="form-input" required
+            placeholder="เช่น 1, 100"
+          >
+        </div>
+        <div class="form-group">
+          <label for="pricePerUnit">ราคาต่อหน่วย</label>
+          <input
+            id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" step="0.01" class="form-input"
+            required
+          >
+        </div>
+      </div>
+      <div v-if="error" class="error-message">
+        {{ error }}
+      </div>
+      <div class="button-container">
+        <button type="button" class="btn btn-secondary" @click="emit('close')">
+          ยกเลิก
+        </button>
+        <button type="submit" class="btn btn-primary" :disabled="isLoading">
+          {{ isLoading ? 'กำลังบันทึก...' : 'เพิ่มรายการ' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</template>
 
 <style scoped>
 .add-form-card {

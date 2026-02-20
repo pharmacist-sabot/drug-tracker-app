@@ -17,15 +17,12 @@
 
     <!-- Script to prevent FOUC for dark mode -->
     <script>
-      ;(function () {
-        const theme = localStorage.getItem('theme')
-        if (
-          theme === 'dark' ||
-          (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ) {
-          document.documentElement.classList.add('dark')
+      (function () {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
         }
-      })()
+      })();
     </script>
   </head>
   <body>

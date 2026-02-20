@@ -5,164 +5,164 @@
 // Database schema definition
 // ─────────────────────────────────────────────
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       import_batches: {
         Row: {
-          id: number
-          file_name: string
-          created_at: string
-        }
+          id: number;
+          file_name: string;
+          created_at: string;
+        };
         Insert: {
-          id?: number
-          file_name: string
-          created_at?: string
-        }
+          id?: number;
+          file_name: string;
+          created_at?: string;
+        };
         Update: {
-          id?: number
-          file_name?: string
-          created_at?: string
-        }
-      }
+          id?: number;
+          file_name?: string;
+          created_at?: string;
+        };
+      };
       suppliers: {
         Row: {
-          id: number
-          name: string
-          created_at: string
-        }
+          id: number;
+          name: string;
+          created_at: string;
+        };
         Insert: {
-          id?: number
-          name: string
-          created_at?: string
-        }
+          id?: number;
+          name: string;
+          created_at?: string;
+        };
         Update: {
-          id?: number
-          name?: string
-          created_at?: string
-        }
-      }
+          id?: number;
+          name?: string;
+          created_at?: string;
+        };
+      };
       drugs: {
         Row: {
-          id: number
-          name: string
-          form: string | null
-          strength: string | null
-          created_at: string
-        }
+          id: number;
+          name: string;
+          form: string | null;
+          strength: string | null;
+          created_at: string;
+        };
         Insert: {
-          id?: number
-          name: string
-          form?: string | null
-          strength?: string | null
-          created_at?: string
-        }
+          id?: number;
+          name: string;
+          form?: string | null;
+          strength?: string | null;
+          created_at?: string;
+        };
         Update: {
-          id?: number
-          name?: string
-          form?: string | null
-          strength?: string | null
-          created_at?: string
-        }
-      }
+          id?: number;
+          name?: string;
+          form?: string | null;
+          strength?: string | null;
+          created_at?: string;
+        };
+      };
       purchase_orders: {
         Row: {
-          id: number
-          import_batch_id: number
-          supplier_id: number
-          drug_id: number
-          packaging: string | null
-          quantity: number
-          unit_count: string
-          price_per_unit: number
-          total_price: number
-          status: PurchaseOrderStatus
-          order_date: string | null
-          received_date: string | null
-          created_at: string
-        }
+          id: number;
+          import_batch_id: number;
+          supplier_id: number;
+          drug_id: number;
+          packaging: string | null;
+          quantity: number;
+          unit_count: string;
+          price_per_unit: number;
+          total_price: number;
+          status: PurchaseOrderStatus;
+          order_date: string | null;
+          received_date: string | null;
+          created_at: string;
+        };
         Insert: {
-          id?: number
-          import_batch_id: number
-          supplier_id: number
-          drug_id: number
-          packaging?: string | null
-          quantity: number
-          unit_count: string
-          price_per_unit: number
-          total_price: number
-          status?: PurchaseOrderStatus
-          order_date?: string | null
-          received_date?: string | null
-          created_at?: string
-        }
+          id?: number;
+          import_batch_id: number;
+          supplier_id: number;
+          drug_id: number;
+          packaging?: string | null;
+          quantity: number;
+          unit_count: string;
+          price_per_unit: number;
+          total_price: number;
+          status?: PurchaseOrderStatus;
+          order_date?: string | null;
+          received_date?: string | null;
+          created_at?: string;
+        };
         Update: {
-          id?: number
-          import_batch_id?: number
-          supplier_id?: number
-          drug_id?: number
-          packaging?: string | null
-          quantity?: number
-          unit_count?: string
-          price_per_unit?: number
-          total_price?: number
-          status?: PurchaseOrderStatus
-          order_date?: string | null
-          received_date?: string | null
-          created_at?: string
-        }
-      }
-    }
-    Views: Record<string, never>
-    Functions: Record<string, never>
+          id?: number;
+          import_batch_id?: number;
+          supplier_id?: number;
+          drug_id?: number;
+          packaging?: string | null;
+          quantity?: number;
+          unit_count?: string;
+          price_per_unit?: number;
+          total_price?: number;
+          status?: PurchaseOrderStatus;
+          order_date?: string | null;
+          received_date?: string | null;
+          created_at?: string;
+        };
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
     Enums: {
-      purchase_order_status: PurchaseOrderStatus
-    }
-  }
-}
+      purchase_order_status: PurchaseOrderStatus;
+    };
+  };
+};
 
 // ─────────────────────────────────────────────
 // Domain enums & union types
 // ─────────────────────────────────────────────
 
-export type PurchaseOrderStatus = 'ต้องสั่งซื้อ' | 'สั่งแล้ว' | 'รับของแล้ว'
+export type PurchaseOrderStatus = 'ต้องสั่งซื้อ' | 'สั่งแล้ว' | 'รับของแล้ว';
 
 // ─────────────────────────────────────────────
 // Row shorthand aliases
 // ─────────────────────────────────────────────
 
-export type ImportBatchRow = Database['public']['Tables']['import_batches']['Row']
-export type SupplierRow = Database['public']['Tables']['suppliers']['Row']
-export type DrugRow = Database['public']['Tables']['drugs']['Row']
-export type PurchaseOrderRow = Database['public']['Tables']['purchase_orders']['Row']
+export type ImportBatchRow = Database['public']['Tables']['import_batches']['Row'];
+export type SupplierRow = Database['public']['Tables']['suppliers']['Row'];
+export type DrugRow = Database['public']['Tables']['drugs']['Row'];
+export type PurchaseOrderRow = Database['public']['Tables']['purchase_orders']['Row'];
 
-export type ImportBatchInsert = Database['public']['Tables']['import_batches']['Insert']
-export type SupplierInsert = Database['public']['Tables']['suppliers']['Insert']
-export type DrugInsert = Database['public']['Tables']['drugs']['Insert']
-export type PurchaseOrderInsert = Database['public']['Tables']['purchase_orders']['Insert']
+export type ImportBatchInsert = Database['public']['Tables']['import_batches']['Insert'];
+export type SupplierInsert = Database['public']['Tables']['suppliers']['Insert'];
+export type DrugInsert = Database['public']['Tables']['drugs']['Insert'];
+export type PurchaseOrderInsert = Database['public']['Tables']['purchase_orders']['Insert'];
 
-export type PurchaseOrderUpdate = Database['public']['Tables']['purchase_orders']['Update']
+export type PurchaseOrderUpdate = Database['public']['Tables']['purchase_orders']['Update'];
 
 // ─────────────────────────────────────────────
 // Joined / hydrated query result types
 // ─────────────────────────────────────────────
 
 /** Full purchase order with nested drug and supplier data (Supabase `select … drugs(*), suppliers(*)`) */
-export interface PurchaseOrderWithRelations {
-  id: number
-  import_batch_id?: number
-  packaging: string | null
-  quantity: number
-  unit_count: string
-  price_per_unit: number
-  total_price: number
-  status: PurchaseOrderStatus
-  order_date: string | null
-  received_date: string | null
-  created_at?: string
-  drugs: DrugRow
-  suppliers: SupplierRow
-}
+export type PurchaseOrderWithRelations = {
+  id: number;
+  import_batch_id?: number;
+  packaging: string | null;
+  quantity: number;
+  unit_count: string;
+  price_per_unit: number;
+  total_price: number;
+  status: PurchaseOrderStatus;
+  order_date: string | null;
+  received_date: string | null;
+  created_at?: string;
+  drugs: DrugRow;
+  suppliers: SupplierRow;
+};
 
 // ─────────────────────────────────────────────
 // View-specific partial query result types
@@ -170,100 +170,100 @@ export interface PurchaseOrderWithRelations {
 // ─────────────────────────────────────────────
 
 /** OrderView query: id, quantity, unit_count, price_per_unit, total_price, packaging, drugs(*), suppliers(*) */
-export interface OrderViewOrder {
-  id: number
-  quantity: number
-  unit_count: string
-  price_per_unit: number
-  total_price: number
-  packaging: string | null
-  drugs: DrugRow
-  suppliers: SupplierRow
-}
+export type OrderViewOrder = {
+  id: number;
+  quantity: number;
+  unit_count: string;
+  price_per_unit: number;
+  total_price: number;
+  packaging: string | null;
+  drugs: DrugRow;
+  suppliers: SupplierRow;
+};
 
 /** ReceiveView query: id, order_date, packaging, drugs(*), suppliers(*) */
-export interface ReceiveViewOrder {
-  id: number
-  order_date: string | null
-  packaging: string | null
-  drugs: DrugRow
-  suppliers: SupplierRow
-}
+export type ReceiveViewOrder = {
+  id: number;
+  order_date: string | null;
+  packaging: string | null;
+  drugs: DrugRow;
+  suppliers: SupplierRow;
+};
 
 /** HistoryView query: id, status, order_date, received_date, packaging, drugs(*), suppliers(*) */
-export interface HistoryViewOrder {
-  id: number
-  status: PurchaseOrderStatus
-  order_date: string | null
-  received_date: string | null
-  packaging: string | null
-  drugs: DrugRow
-  suppliers: SupplierRow
-}
+export type HistoryViewOrder = {
+  id: number;
+  status: PurchaseOrderStatus;
+  order_date: string | null;
+  received_date: string | null;
+  packaging: string | null;
+  drugs: DrugRow;
+  suppliers: SupplierRow;
+};
 
 /** Extended order used in the "Receive" view with local UI state */
-export interface ReceivableOrder extends ReceiveViewOrder {
-  received_date_input: string
-  isSaving: boolean
-}
+export type ReceivableOrder = {
+  received_date_input: string;
+  isSaving: boolean;
+} & ReceiveViewOrder;
 
 // ─────────────────────────────────────────────
 // Grouped orders (used in OrderSummaryModal)
 // ─────────────────────────────────────────────
 
-export interface SupplierOrderGroup {
-  orders: OrderViewOrder[]
-}
+export type SupplierOrderGroup = {
+  orders: OrderViewOrder[];
+};
 
-export type GroupedOrders = Record<string, SupplierOrderGroup>
+export type GroupedOrders = Record<string, SupplierOrderGroup>;
 
 // ─────────────────────────────────────────────
 // Notification store payload
 // ─────────────────────────────────────────────
 
-export type NotificationType = 'success' | 'error'
+export type NotificationType = 'success' | 'error';
 
-export interface NotificationPayload {
-  message: string
-  type?: NotificationType
-}
+export type NotificationPayload = {
+  message: string;
+  type?: NotificationType;
+};
 
 // ─────────────────────────────────────────────
 // CSV import types
 // ─────────────────────────────────────────────
 
-export interface CsvHeaderMapping {
-  readonly supplier: string
-  readonly drugName: string
-  readonly form: string
-  readonly strength: string
-  readonly quantity: string
-  readonly unitCount: string
-  readonly packaging: string
-  readonly pricePerUnit: string
-  readonly totalPrice: string
-}
+export type CsvHeaderMapping = {
+  readonly supplier: string;
+  readonly drugName: string;
+  readonly form: string;
+  readonly strength: string;
+  readonly quantity: string;
+  readonly unitCount: string;
+  readonly packaging: string;
+  readonly pricePerUnit: string;
+  readonly totalPrice: string;
+};
 
-export interface CsvRow {
-  [header: string]: string | undefined
-}
+export type CsvRow = {
+  [header: string]: string | undefined;
+};
 
-export interface ImportResult {
-  success: boolean
-  message: string
-  errors?: string[]
-}
+export type ImportResult = {
+  success: boolean;
+  message: string;
+  errors?: string[];
+};
 
 // ─────────────────────────────────────────────
 // Add-order form shape
 // ─────────────────────────────────────────────
 
-export interface AddOrderFormData {
-  drugName: string
-  form: string
-  strength: string
-  supplierName: string
-  quantity: number
-  unitCount: string
-  pricePerUnit: number
-}
+export type AddOrderFormData = {
+  drugName: string;
+  form: string;
+  strength: string;
+  supplierName: string;
+  quantity: number;
+  unitCount: string;
+  pricePerUnit: number;
+};

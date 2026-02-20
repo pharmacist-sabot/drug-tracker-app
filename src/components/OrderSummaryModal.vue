@@ -1,14 +1,190 @@
 <!-- src/components/OrderSummaryModal.vue -->
+<script setup lang="ts">
+import { ref } from 'vue';
+
+import type { GroupedOrders, OrderViewOrder } from '@/types/database';
+
+import { supabase } from '@/supabase/client';
+
+// ─────────────────────────────────────────────
+// Props & Emits
+// ─────────────────────────────────────────────
+
+const props = defineProps<{
+  groupedOrders: GroupedOrders;
+}>();
+
+const emit = defineEmits<{
+  close: [];
+  ordersSent: [];
+}>();
+
+// ─────────────────────────────────────────────
+// Local state
+// ─────────────────────────────────────────────
+
+const isSending = ref<boolean>(false);
+const error = ref<string | null>(null);
+
+// ─────────────────────────────────────────────
+// Telegram MarkdownV2 helpers
+// ─────────────────────────────────────────────
+
+const MARKDOWN_V2_SPECIAL_CHARS = /([_*[\]()~`>#+\-=|{}.!])/g;
+
+/**
+ * Escapes special characters for Telegram MarkdownV2 parse mode.
+ * Safely handles `null`, `undefined`, and non-string values.
+ */
+function escapeMarkdownV2(text: string | number | null | undefined): string {
+  return String(text ?? '').replace(MARKDOWN_V2_SPECIAL_CHARS, '\\$1');
+}
+
+/**
+ * Formats a `Date` to a Thai locale date string, then escapes it for MarkdownV2.
+ */
+function formatThaiDate(date: Date): string {
+  const formatted = date.toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  return escapeMarkdownV2(formatted);
+}
+
+/**
+ * Formats a `Date` to an ISO date string (YYYY-MM-DD) suitable for database storage.
+ */
+function toIsoDateString(date: Date): string {
+  return date.toISOString().split('T')[0]!;
+}
+
+/**
+ * Builds a single Telegram MarkdownV2 message for a supplier's order group.
+ */
+function buildTelegramMessage(
+  supplierName: string,
+  orders: OrderViewOrder[],
+  dateTelegram: string,
+): string {
+  const safeSupplierName = escapeMarkdownV2(supplierName);
+
+  let message = `*📝 ใบสั่งซื้อยาถึง บ\\. ${safeSupplierName}*\n\n`;
+  message += `จาก: *โรงพยาบาลสระโบสถ์ จังหวัดลพบุรี*\n`;
+  message += `*วันที่สั่งซื้อ:* ${dateTelegram}\n\n`;
+
+  orders.forEach((order, index) => {
+    const drugName = escapeMarkdownV2(order.drugs.name);
+    const form = escapeMarkdownV2(order.drugs.form);
+    const strength = escapeMarkdownV2(order.drugs.strength);
+    const packaging = escapeMarkdownV2(order.packaging);
+    const quantity = escapeMarkdownV2(order.quantity);
+    const unit = escapeMarkdownV2(order.unit_count);
+
+    message += `*${index + 1}\\. ${drugName}*`;
+    if (form)
+      message += ` \\[${form}\\]`;
+    if (strength)
+      message += ` \\(${strength}\\)`;
+
+    if (packaging) {
+      message += `\n   _หน่วยนับ: ${packaging}_`;
+    }
+
+    message += `\n   _จำนวน: ${quantity} x ${unit}_\n`;
+  });
+
+  message += `\n*หมายเหตุ: บิลไม่ลงวันที่*\n`;
+
+  return message;
+}
+
+// ─────────────────────────────────────────────
+// Core action
+// ─────────────────────────────────────────────
+
+async function confirmAndSend(): Promise<void> {
+  isSending.value = true;
+  error.value = null;
+
+  const allOrderedIds: number[] = [];
+
+  try {
+    const orderDate = new Date();
+    const dateTelegram = formatThaiDate(orderDate);
+    const dateForDatabase = toIsoDateString(orderDate);
+
+    // Send a Telegram notification per supplier group
+    for (const supplierName of Object.keys(props.groupedOrders)) {
+      const group = props.groupedOrders[supplierName];
+      if (!group)
+        continue;
+
+      const message = buildTelegramMessage(supplierName, group.orders, dateTelegram);
+
+      // Collect IDs for the batch DB update
+      for (const order of group.orders) {
+        allOrderedIds.push(order.id);
+      }
+
+      // Invoke Supabase Edge Function to send Telegram notification
+      const { data: functionResponse, error: functionError } = await supabase.functions.invoke(
+        'send-telegram-notify',
+        { body: { message } },
+      );
+
+      if (functionError) {
+        throw new Error(
+          `Failed to send notification for ${supplierName}: ${functionError.message}`,
+        );
+      }
+
+      // The edge function may return an error in the response body
+      const responseBody = functionResponse as { error?: string } | null;
+      if (responseBody?.error) {
+        throw new Error(
+          `Edge function returned an error for ${supplierName}: ${responseBody.error}`,
+        );
+      }
+    }
+
+    // Batch-update all selected orders to "สั่งแล้ว"
+    const { error: dbError } = await supabase
+      .from('purchase_orders')
+      .update({ status: 'สั่งแล้ว', order_date: dateForDatabase })
+      .in('id', allOrderedIds);
+
+    if (dbError) {
+      console.error('Critical Error: Notifications sent, but DB update failed!', dbError);
+      throw new Error(
+        `Notifications were sent, but failed to update database: ${dbError.message}`,
+      );
+    }
+
+    emit('ordersSent');
+  }
+  catch (err: unknown) {
+    error.value = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    console.error('An error occurred in confirmAndSend:', err);
+  }
+  finally {
+    isSending.value = false;
+  }
+}
+</script>
+
 <template>
   <div class="modal-backdrop" @click.self="emit('close')">
     <div class="modal-content card">
       <header class="modal-header">
         <h2>สรุปรายการสั่งซื้อ</h2>
-        <button @click="emit('close')" class="close-button" aria-label="ปิด">&times;</button>
+        <button class="close-button" aria-label="ปิด" @click="emit('close')">
+          &times;
+        </button>
       </header>
 
       <div v-if="isSending" class="sending-state">
-        <div class="spinner"></div>
+        <div class="spinner" />
         <p>กำลังส่งคำสั่งซื้อและแจ้งเตือนผ่าน Telegram...</p>
       </div>
 
@@ -17,7 +193,9 @@
           <h4>
             เรียน บริษัท <strong>{{ supplierName }}</strong>
           </h4>
-          <p class="order-request-text">โรงพยาบาลสระโบสถ์ ขอความอนุเคราะห์ในการจัดซื้อยาตามรายการต่อไปนี้:</p>
+          <p class="order-request-text">
+            โรงพยาบาลสระโบสถ์ ขอความอนุเคราะห์ในการจัดซื้อยาตามรายการต่อไปนี้:
+          </p>
           <ul>
             <li v-for="order in group.orders" :key="order.id">
               <span>
@@ -37,184 +215,19 @@
       </div>
 
       <footer class="modal-footer">
-        <button @click="emit('close')" class="btn btn-secondary" :disabled="isSending">
+        <button class="btn btn-secondary" :disabled="isSending" @click="emit('close')">
           ยกเลิก
         </button>
-        <button @click="confirmAndSend" class="btn btn-primary"
-          :disabled="isSending || Object.keys(groupedOrders).length === 0">
+        <button
+          class="btn btn-primary" :disabled="isSending || Object.keys(groupedOrders).length === 0"
+          @click="confirmAndSend"
+        >
           {{ isSending ? 'กำลังส่ง...' : 'ยืนยันและส่งคำสั่งซื้อ' }}
         </button>
       </footer>
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-import { supabase } from '@/supabase/client'
-import type { GroupedOrders, OrderViewOrder } from '@/types/database'
-
-// ─────────────────────────────────────────────
-// Props & Emits
-// ─────────────────────────────────────────────
-
-const props = defineProps<{
-  groupedOrders: GroupedOrders
-}>()
-
-const emit = defineEmits<{
-  close: []
-  'orders-sent': []
-}>()
-
-// ─────────────────────────────────────────────
-// Local state
-// ─────────────────────────────────────────────
-
-const isSending = ref<boolean>(false)
-const error = ref<string | null>(null)
-
-// ─────────────────────────────────────────────
-// Telegram MarkdownV2 helpers
-// ─────────────────────────────────────────────
-
-const MARKDOWN_V2_SPECIAL_CHARS = /([_*[\]()~`>#+\-=|{}.!])/g
-
-/**
- * Escapes special characters for Telegram MarkdownV2 parse mode.
- * Safely handles `null`, `undefined`, and non-string values.
- */
-function escapeMarkdownV2(text: string | number | null | undefined): string {
-  return String(text ?? '').replace(MARKDOWN_V2_SPECIAL_CHARS, '\\$1')
-}
-
-/**
- * Formats a `Date` to a Thai locale date string, then escapes it for MarkdownV2.
- */
-function formatThaiDate(date: Date): string {
-  const formatted = date.toLocaleDateString('th-TH', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-  return escapeMarkdownV2(formatted)
-}
-
-/**
- * Formats a `Date` to an ISO date string (YYYY-MM-DD) suitable for database storage.
- */
-function toIsoDateString(date: Date): string {
-  return date.toISOString().split('T')[0]!
-}
-
-/**
- * Builds a single Telegram MarkdownV2 message for a supplier's order group.
- */
-function buildTelegramMessage(
-  supplierName: string,
-  orders: OrderViewOrder[],
-  dateTelegram: string,
-): string {
-  const safeSupplierName = escapeMarkdownV2(supplierName)
-
-  let message = `*📝 ใบสั่งซื้อยาถึง บ\\. ${safeSupplierName}*\n\n`
-  message += `จาก: *โรงพยาบาลสระโบสถ์ จังหวัดลพบุรี*\n`
-  message += `*วันที่สั่งซื้อ:* ${dateTelegram}\n\n`
-
-  orders.forEach((order, index) => {
-    const drugName = escapeMarkdownV2(order.drugs.name)
-    const form = escapeMarkdownV2(order.drugs.form)
-    const strength = escapeMarkdownV2(order.drugs.strength)
-    const packaging = escapeMarkdownV2(order.packaging)
-    const quantity = escapeMarkdownV2(order.quantity)
-    const unit = escapeMarkdownV2(order.unit_count)
-
-    message += `*${index + 1}\\. ${drugName}*`
-    if (form) message += ` \\[${form}\\]`
-    if (strength) message += ` \\(${strength}\\)`
-
-    if (packaging) {
-      message += `\n   _หน่วยนับ: ${packaging}_`
-    }
-
-    message += `\n   _จำนวน: ${quantity} x ${unit}_\n`
-  })
-
-  message += `\n*หมายเหตุ: บิลไม่ลงวันที่*\n`
-
-  return message
-}
-
-// ─────────────────────────────────────────────
-// Core action
-// ─────────────────────────────────────────────
-
-const confirmAndSend = async (): Promise<void> => {
-  isSending.value = true
-  error.value = null
-
-  const allOrderedIds: number[] = []
-
-  try {
-    const orderDate = new Date()
-    const dateTelegram = formatThaiDate(orderDate)
-    const dateForDatabase = toIsoDateString(orderDate)
-
-    // Send a Telegram notification per supplier group
-    for (const supplierName of Object.keys(props.groupedOrders)) {
-      const group = props.groupedOrders[supplierName]
-      if (!group) continue
-
-      const message = buildTelegramMessage(supplierName, group.orders, dateTelegram)
-
-      // Collect IDs for the batch DB update
-      for (const order of group.orders) {
-        allOrderedIds.push(order.id)
-      }
-
-      // Invoke Supabase Edge Function to send Telegram notification
-      const { data: functionResponse, error: functionError } = await supabase.functions.invoke(
-        'send-telegram-notify',
-        { body: { message } },
-      )
-
-      if (functionError) {
-        throw new Error(
-          `Failed to send notification for ${supplierName}: ${functionError.message}`,
-        )
-      }
-
-      // The edge function may return an error in the response body
-      const responseBody = functionResponse as { error?: string } | null
-      if (responseBody?.error) {
-        throw new Error(
-          `Edge function returned an error for ${supplierName}: ${responseBody.error}`,
-        )
-      }
-    }
-
-    // Batch-update all selected orders to "สั่งแล้ว"
-    const { error: dbError } = await supabase
-      .from('purchase_orders')
-      .update({ status: 'สั่งแล้ว', order_date: dateForDatabase })
-      .in('id', allOrderedIds)
-
-    if (dbError) {
-      console.error('Critical Error: Notifications sent, but DB update failed!', dbError)
-      throw new Error(
-        `Notifications were sent, but failed to update database: ${dbError.message}`,
-      )
-    }
-
-    emit('orders-sent')
-  } catch (err: unknown) {
-    error.value = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
-    console.error('An error occurred in confirmAndSend:', err)
-  } finally {
-    isSending.value = false
-  }
-}
-</script>
 
 <style scoped>
 .modal-backdrop {
