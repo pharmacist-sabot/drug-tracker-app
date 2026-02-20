@@ -10,22 +10,23 @@
   <AuthView v-else />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { supabase } from './supabase/client'
-import NavBar from './components/NavBar.vue'
-import AuthView from './views/AuthView.vue'
-import Notification from './components/Notification.vue'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from '@/supabase/client'
+import NavBar from '@/components/NavBar.vue'
+import AuthView from '@/views/AuthView.vue'
+import Notification from '@/components/Notification.vue'
 
-const session = ref(null)
+const session = ref<Session | null>(null)
 
 onMounted(() => {
   supabase.auth.getSession().then(({ data }) => {
     session.value = data.session
   })
 
-  supabase.auth.onAuthStateChange((_event, _session) => {
-    session.value = _session
+  supabase.auth.onAuthStateChange((_event, newSession) => {
+    session.value = newSession
   })
 })
 </script>

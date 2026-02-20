@@ -20,38 +20,15 @@
       <!-- User Info and Actions -->
       <div class="user-actions">
         <span v-if="user" class="user-email">{{ user.email }}</span>
-        <button
-          @click="toggleTheme"
-          class="theme-toggle"
-          :aria-label="`Switch to ${isDark ? 'light' : 'dark'} mode`"
-        >
-          <!-- Simple Sun/Moon SVG Icons -->
-          <svg
-            v-if="isDark"
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+        <button @click="toggleTheme" class="theme-toggle" :aria-label="`Switch to ${isDark ? 'light' : 'dark'} mode`">
+          <!-- Moon icon (shown in dark mode) -->
+          <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
           </svg>
-          <svg
-            v-else
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+          <!-- Sun icon (shown in light mode) -->
+          <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5"></circle>
             <line x1="12" y1="1" x2="12" y2="3"></line>
             <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -69,31 +46,33 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { supabase } from '../supabase/client'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from '@/supabase/client'
 import { useRouter } from 'vue-router'
-import { useTheme } from '../composables/useTheme'
+import { useTheme } from '@/composables/useTheme'
 
-const user = ref(null)
+const user = ref<User | null>(null)
 const router = useRouter()
-const isMenuOpen = ref(false)
+const isMenuOpen = ref<boolean>(false)
 const { isDark, toggleTheme } = useTheme()
 
-onMounted(async () => {
+onMounted(async (): Promise<void> => {
   const { data } = await supabase.auth.getUser()
   user.value = data.user
 })
 
-const handleLogout = async () => {
+const handleLogout = async (): Promise<void> => {
   await supabase.auth.signOut()
   router.push('/auth')
 }
 
-const toggleMenu = () => {
+const toggleMenu = (): void => {
   isMenuOpen.value = !isMenuOpen.value
 }
-const closeMenu = () => {
+
+const closeMenu = (): void => {
   isMenuOpen.value = false
 }
 </script>
@@ -172,11 +151,14 @@ const closeMenu = () => {
 .user-email {
   color: var(--subtle-text-color);
   font-size: 0.9rem;
-  display: none; /* Hide on mobile by default */
+  display: none;
+  /* Hide on mobile by default */
 }
+
 @media (min-width: 1024px) {
   .user-email {
-    display: inline; /* Show on larger screens */
+    display: inline;
+    /* Show on larger screens */
   }
 }
 
@@ -209,6 +191,7 @@ const closeMenu = () => {
   border-color: var(--status-pending-bg);
   color: var(--status-pending-bg);
 }
+
 .logout-button:hover {
   background-color: var(--status-pending-bg);
   color: var(--card-bg-color);
@@ -231,6 +214,7 @@ const closeMenu = () => {
   position: relative;
   transition: background-color 0s 0.2s;
 }
+
 .hamburger-icon::before,
 .hamburger-icon::after {
   content: '';
@@ -243,9 +227,11 @@ const closeMenu = () => {
     transform 0.2s,
     top 0.2s 0.2s;
 }
+
 .hamburger-icon::before {
   top: -8px;
 }
+
 .hamburger-icon::after {
   top: 8px;
 }
@@ -278,12 +264,12 @@ const closeMenu = () => {
     display: block;
   }
 
-  .is-open + .user-actions .mobile-nav-toggle .hamburger-icon,
+  .is-open+.user-actions .mobile-nav-toggle .hamburger-icon,
   .mobile-nav-toggle.is-open .hamburger-icon {
     background-color: transparent;
   }
 
-  .is-open + .user-actions .mobile-nav-toggle .hamburger-icon::before,
+  .is-open+.user-actions .mobile-nav-toggle .hamburger-icon::before,
   .mobile-nav-toggle.is-open .hamburger-icon::before {
     top: 0;
     transform: rotate(45deg);
@@ -291,7 +277,8 @@ const closeMenu = () => {
       top 0.2s,
       transform 0.2s 0.2s;
   }
-  .is-open + .user-actions .mobile-nav-toggle .hamburger-icon::after,
+
+  .is-open+.user-actions .mobile-nav-toggle .hamburger-icon::after,
   .mobile-nav-toggle.is-open .hamburger-icon::after {
     top: 0;
     transform: rotate(-45deg);

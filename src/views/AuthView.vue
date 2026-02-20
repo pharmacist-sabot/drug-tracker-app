@@ -10,24 +10,12 @@
       <form @submit.prevent>
         <div class="form-group">
           <label for="email">อีเมล</label>
-          <input
-            id="email"
-            v-model="email"
-            type="email"
-            placeholder="you@example.com"
-            class="form-input"
-          />
+          <input id="email" v-model="email" type="email" placeholder="you@example.com" class="form-input" />
         </div>
 
         <div class="form-group">
           <label for="password">รหัสผ่าน</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            placeholder="••••••••"
-            class="form-input"
-          />
+          <input id="password" v-model="password" type="password" placeholder="••••••••" class="form-input" />
         </div>
 
         <div class="button-group">
@@ -43,18 +31,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { supabase } from '../supabase/client'
+import { supabase } from '@/supabase/client'
 import { useRouter } from 'vue-router'
 
-const email = ref('')
-const password = ref('')
-const message = ref('')
-const isLoading = ref(false)
+const email = ref<string>('')
+const password = ref<string>('')
+const message = ref<string>('')
+const isLoading = ref<boolean>(false)
 const router = useRouter()
 
-const handleLogin = async () => {
+const handleLogin = async (): Promise<void> => {
   isLoading.value = true
   message.value = ''
   try {
@@ -64,14 +52,15 @@ const handleLogin = async () => {
     })
     if (error) throw error
     router.push('/')
-  } catch (error) {
-    message.value = `เกิดข้อผิดพลาด: ${error.message}`
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
+    message.value = `เกิดข้อผิดพลาด: ${errorMessage}`
   } finally {
     isLoading.value = false
   }
 }
 
-const handleRegister = async () => {
+const handleRegister = async (): Promise<void> => {
   isLoading.value = true
   message.value = ''
   try {
@@ -81,8 +70,9 @@ const handleRegister = async () => {
     })
     if (error) throw error
     router.push('/')
-  } catch (error) {
-    message.value = `เกิดข้อผิดพลาด: ${error.message}`
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
+    message.value = `เกิดข้อผิดพลาด: ${errorMessage}`
   } finally {
     isLoading.value = false
   }

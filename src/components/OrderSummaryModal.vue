@@ -1,13 +1,12 @@
 <!-- src/components/OrderSummaryModal.vue -->
 <template>
-  <!-- ส่วน Template ไม่มีการเปลี่ยนแปลง -->
-  <div class="modal-backdrop" @click.self="$emit('close')">
+  <div class="modal-backdrop" @click.self="emit('close')">
     <div class="modal-content card">
       <header class="modal-header">
         <h2>สรุปรายการสั่งซื้อ</h2>
-        <button @click="$emit('close')" class="close-button" aria-label="ปิด">&times;</button>
+        <button @click="emit('close')" class="close-button" aria-label="ปิด">&times;</button>
       </header>
-      
+
       <div v-if="isSending" class="sending-state">
         <div class="spinner"></div>
         <p>กำลังส่งคำสั่งซื้อและแจ้งเตือนผ่าน Telegram...</p>
@@ -32,16 +31,17 @@
           </ul>
         </div>
       </div>
-      
+
       <div v-if="error" class="error-message">
         <strong>เกิดข้อผิดพลาด:</strong> {{ error }}
       </div>
 
       <footer class="modal-footer">
-        <button @click="$emit('close')" class="btn btn-secondary" :disabled="isSending">
+        <button @click="emit('close')" class="btn btn-secondary" :disabled="isSending">
           ยกเลิก
         </button>
-        <button @click="confirmAndSend" class="btn btn-primary" :disabled="isSending || Object.keys(groupedOrders).length === 0">
+        <button @click="confirmAndSend" class="btn btn-primary"
+          :disabled="isSending || Object.keys(groupedOrders).length === 0">
           {{ isSending ? 'กำลังส่ง...' : 'ยืนยันและส่งคำสั่งซื้อ' }}
         </button>
       </footer>
@@ -49,102 +49,167 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { supabase } from '../supabase/client'
+import { supabase } from '@/supabase/client'
+import type { GroupedOrders, OrderViewOrder } from '@/types/database'
 
-const props = defineProps({
-  groupedOrders: {
-    type: Object,
-    required: true,
-  },
-})
+// ─────────────────────────────────────────────
+// Props & Emits
+// ─────────────────────────────────────────────
 
-const emit = defineEmits(['close', 'orders-sent'])
+const props = defineProps<{
+  groupedOrders: GroupedOrders
+}>()
 
-const isSending = ref(false)
-const error = ref(null)
+const emit = defineEmits<{
+  close: []
+  'orders-sent': []
+}>()
 
-// แก้ไขฟังก์ชันนี้ให้รับค่า null หรือ undefined ได้อย่างปลอดภัย
-function escapeMarkdownV2(text) {
-  const str = String(text || ''); // ป้องกัน error ถ้า text เป็น null/undefined
-  return str.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
+// ─────────────────────────────────────────────
+// Local state
+// ─────────────────────────────────────────────
+
+const isSending = ref<boolean>(false)
+const error = ref<string | null>(null)
+
+// ─────────────────────────────────────────────
+// Telegram MarkdownV2 helpers
+// ─────────────────────────────────────────────
+
+const MARKDOWN_V2_SPECIAL_CHARS = /([_*[\]()~`>#+\-=|{}.!])/g
+
+/**
+ * Escapes special characters for Telegram MarkdownV2 parse mode.
+ * Safely handles `null`, `undefined`, and non-string values.
+ */
+function escapeMarkdownV2(text: string | number | null | undefined): string {
+  return String(text ?? '').replace(MARKDOWN_V2_SPECIAL_CHARS, '\\$1')
 }
 
-const confirmAndSend = async () => {
+/**
+ * Formats a `Date` to a Thai locale date string, then escapes it for MarkdownV2.
+ */
+function formatThaiDate(date: Date): string {
+  const formatted = date.toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+  return escapeMarkdownV2(formatted)
+}
+
+/**
+ * Formats a `Date` to an ISO date string (YYYY-MM-DD) suitable for database storage.
+ */
+function toIsoDateString(date: Date): string {
+  return date.toISOString().split('T')[0]!
+}
+
+/**
+ * Builds a single Telegram MarkdownV2 message for a supplier's order group.
+ */
+function buildTelegramMessage(
+  supplierName: string,
+  orders: OrderViewOrder[],
+  dateTelegram: string,
+): string {
+  const safeSupplierName = escapeMarkdownV2(supplierName)
+
+  let message = `*📝 ใบสั่งซื้อยาถึง บ\\. ${safeSupplierName}*\n\n`
+  message += `จาก: *โรงพยาบาลสระโบสถ์ จังหวัดลพบุรี*\n`
+  message += `*วันที่สั่งซื้อ:* ${dateTelegram}\n\n`
+
+  orders.forEach((order, index) => {
+    const drugName = escapeMarkdownV2(order.drugs.name)
+    const form = escapeMarkdownV2(order.drugs.form)
+    const strength = escapeMarkdownV2(order.drugs.strength)
+    const packaging = escapeMarkdownV2(order.packaging)
+    const quantity = escapeMarkdownV2(order.quantity)
+    const unit = escapeMarkdownV2(order.unit_count)
+
+    message += `*${index + 1}\\. ${drugName}*`
+    if (form) message += ` \\[${form}\\]`
+    if (strength) message += ` \\(${strength}\\)`
+
+    if (packaging) {
+      message += `\n   _หน่วยนับ: ${packaging}_`
+    }
+
+    message += `\n   _จำนวน: ${quantity} x ${unit}_\n`
+  })
+
+  message += `\n*หมายเหตุ: บิลไม่ลงวันที่*\n`
+
+  return message
+}
+
+// ─────────────────────────────────────────────
+// Core action
+// ─────────────────────────────────────────────
+
+const confirmAndSend = async (): Promise<void> => {
   isSending.value = true
   error.value = null
-  const allOrderedIds = []
+
+  const allOrderedIds: number[] = []
 
   try {
-    const separator = '—'.repeat(35) + '\n'
-    const orderDate = new Date();
-    const dateForTelegram = escapeMarkdownV2(
-      orderDate.toLocaleDateString('th-TH', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      })
-    );
-    const dateForDatabase = orderDate.toISOString().split('T')[0]; 
-    for (const supplierName in props.groupedOrders) {
+    const orderDate = new Date()
+    const dateTelegram = formatThaiDate(orderDate)
+    const dateForDatabase = toIsoDateString(orderDate)
+
+    // Send a Telegram notification per supplier group
+    for (const supplierName of Object.keys(props.groupedOrders)) {
       const group = props.groupedOrders[supplierName]
-      const safeSupplierName = escapeMarkdownV2(supplierName)
+      if (!group) continue
 
-      let message = `*📝 ใบสั่งซื้อยาถึง บ\\. ${safeSupplierName}*\n\n`
-      message += `จาก: *โรงพยาบาลสระโบสถ์ จังหวัดลพบุรี*\n`
-      message += `*วันที่สั่งซื้อ:* ${dateForTelegram}\n\n` 
+      const message = buildTelegramMessage(supplierName, group.orders, dateTelegram)
 
-      group.orders.forEach((order, index) => {
-        const drugName = escapeMarkdownV2(order.drugs.name)
-        const form = escapeMarkdownV2(order.drugs.form)
-        const strength = escapeMarkdownV2(order.drugs.strength)
-        const packaging = escapeMarkdownV2(order.packaging)
-        const quantity = escapeMarkdownV2(order.quantity)
-        const unit = escapeMarkdownV2(order.unit_count);
-        
-        message += `*${index + 1}\\. ${drugName}*`
-        if (form) message += ` \\[${form}\\]`
-        if (strength) message += ` \\(${strength}\\)`
-        
-        if (packaging) {
-            message += `\n   _หน่วยนับ: ${packaging}_`
-        }
-
-        message += `\n   _จำนวน: ${quantity} x ${unit}_\n` 
-
+      // Collect IDs for the batch DB update
+      for (const order of group.orders) {
         allOrderedIds.push(order.id)
-      })
+      }
 
-        message += `\n*หมายเหตุ: บิลไม่ลงวันที่*\n`
-
-      const { data: functionResponse, error: functionError } = await supabase.functions.invoke('send-telegram-notify', {
-        body: { message },
-      })
+      // Invoke Supabase Edge Function to send Telegram notification
+      const { data: functionResponse, error: functionError } = await supabase.functions.invoke(
+        'send-telegram-notify',
+        { body: { message } },
+      )
 
       if (functionError) {
-        throw new Error(`Failed to send notification for ${supplierName}: ${functionError.message}`)
+        throw new Error(
+          `Failed to send notification for ${supplierName}: ${functionError.message}`,
+        )
       }
-      if (functionResponse?.error) {
-         throw new Error(`Edge function returned an error for ${supplierName}: ${functionResponse.error}`)
+
+      // The edge function may return an error in the response body
+      const responseBody = functionResponse as { error?: string } | null
+      if (responseBody?.error) {
+        throw new Error(
+          `Edge function returned an error for ${supplierName}: ${responseBody.error}`,
+        )
       }
     }
 
+    // Batch-update all selected orders to "สั่งแล้ว"
     const { error: dbError } = await supabase
       .from('purchase_orders')
-      .update({ status: 'สั่งแล้ว', order_date: dateForDatabase }) 
+      .update({ status: 'สั่งแล้ว', order_date: dateForDatabase })
       .in('id', allOrderedIds)
-    
+
     if (dbError) {
-      console.error("Critical Error: Notifications sent, but DB update failed!", dbError)
-      throw new Error(`Notifications were sent, but failed to update database: ${dbError.message}`)
+      console.error('Critical Error: Notifications sent, but DB update failed!', dbError)
+      throw new Error(
+        `Notifications were sent, but failed to update database: ${dbError.message}`,
+      )
     }
 
     emit('orders-sent')
-
-  } catch (err) {
-    error.value = err.message
-    console.error("An error occurred in confirmAndSend:", err);
+  } catch (err: unknown) {
+    error.value = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
+    console.error('An error occurred in confirmAndSend:', err)
   } finally {
     isSending.value = false
   }
@@ -165,6 +230,7 @@ const confirmAndSend = async () => {
   z-index: 2000;
   padding: 1rem;
 }
+
 .modal-content {
   width: 100%;
   max-width: 700px;
@@ -172,6 +238,7 @@ const confirmAndSend = async () => {
   display: flex;
   flex-direction: column;
 }
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -181,6 +248,7 @@ const confirmAndSend = async () => {
   margin-bottom: 1rem;
   flex-shrink: 0;
 }
+
 .close-button {
   background: none;
   border: none;
@@ -189,24 +257,29 @@ const confirmAndSend = async () => {
   cursor: pointer;
   color: var(--subtle-text-color);
 }
+
 .order-summary-list {
   overflow-y: auto;
   flex-grow: 1;
 }
+
 .supplier-group {
   margin-bottom: 2rem;
 }
+
 .supplier-group h4 {
   background-color: var(--bg-color);
   padding: 0.5rem 1rem;
   border-radius: 6px;
   margin: 0 0 0.5rem 0;
 }
+
 .order-request-text {
   color: var(--subtle-text-color);
   font-size: 0.9rem;
   margin: 0.5rem 0;
 }
+
 .supplier-group ul {
   list-style: none;
   padding: 0;
@@ -214,15 +287,18 @@ const confirmAndSend = async () => {
   border-radius: 8px;
   overflow: hidden;
 }
+
 .supplier-group li {
   display: flex;
   justify-content: space-between;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
 }
+
 .supplier-group li:last-child {
   border-bottom: none;
 }
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -231,6 +307,7 @@ const confirmAndSend = async () => {
   border-top: 1px solid var(--border-color);
   flex-shrink: 0;
 }
+
 .sending-state {
   text-align: center;
   padding: 3rem 1rem;
@@ -240,6 +317,7 @@ const confirmAndSend = async () => {
   justify-content: center;
   gap: 1rem;
 }
+
 .spinner {
   border: 4px solid var(--border-color);
   border-top: 4px solid var(--primary-color);
@@ -248,10 +326,17 @@ const confirmAndSend = async () => {
   height: 40px;
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
+
 .error-message {
   color: var(--status-pending-bg);
   background-color: color-mix(in srgb, var(--status-pending-bg) 20%, transparent);

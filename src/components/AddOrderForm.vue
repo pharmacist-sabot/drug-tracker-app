@@ -26,16 +26,18 @@
         </div>
         <div class="form-group">
           <label for="unitCount">หน่วยนับ</label>
-          <input id="unitCount" v-model="form.unitCount" type="text" class="form-input" required placeholder="เช่น 1, 100"/>
+          <input id="unitCount" v-model="form.unitCount" type="text" class="form-input" required
+            placeholder="เช่น 1, 100" />
         </div>
         <div class="form-group">
           <label for="pricePerUnit">ราคาต่อหน่วย</label>
-          <input id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" step="0.01" class="form-input" required />
+          <input id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" step="0.01" class="form-input"
+            required />
         </div>
       </div>
       <div v-if="error" class="error-message">{{ error }}</div>
       <div class="button-container">
-        <button type="button" @click="$emit('close')" class="btn btn-secondary">ยกเลิก</button>
+        <button type="button" class="btn btn-secondary" @click="emit('close')">ยกเลิก</button>
         <button type="submit" class="btn btn-primary" :disabled="isLoading">
           {{ isLoading ? 'กำลังบันทึก...' : 'เพิ่มรายการ' }}
         </button>
@@ -44,13 +46,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { supabase } from '../supabase/client'
+import { supabase } from '@/supabase/client'
+import type { AddOrderFormData, PurchaseOrderInsert } from '@/types/database'
 
-const emit = defineEmits(['close', 'order-added'])
+const emit = defineEmits<{
+  close: []
+  'order-added': []
+}>()
 
-const form = reactive({
+const form = reactive<AddOrderFormData>({
   drugName: '',
   form: '',
   strength: '',
@@ -60,34 +66,37 @@ const form = reactive({
   pricePerUnit: 0,
 })
 
-const isLoading = ref(false)
-const error = ref(null)
+const isLoading = ref<boolean>(false)
+const error = ref<string | null>(null)
 
-const handleSubmit = async () => {
+const MANUAL_BATCH_NAME = 'Manual Add' as const
+
+const handleSubmit = async (): Promise<void> => {
   isLoading.value = true
   error.value = null
 
   try {
-    // 1. สร้างหรือดึงข้อมูล Batch สำหรับการเพิ่มด้วยตนเอง
-    // เพื่อให้มี import_batch_id ไปใส่ในตาราง purchase_orders
-    const manualBatchName = 'Manual Add'
+    // 1. Upsert the manual import batch
     const { data: batchData, error: batchError } = await supabase
       .from('import_batches')
-      .upsert({ file_name: manualBatchName }, { onConflict: 'file_name' }) // ตรวจสอบจากชื่อไฟล์ ถ้าซ้ำจะใช้ของเดิม
+      .upsert({ file_name: MANUAL_BATCH_NAME }, { onConflict: 'file_name' })
       .select()
       .single()
 
     if (batchError) throw batchError
+    if (!batchData) throw new Error('ไม่สามารถสร้าง batch ได้')
 
-    // 2. Upsert Supplier (สร้างถ้ายังไม่มี, ใช้ที่มีอยู่ถ้าซ้ำ)
+    // 2. Upsert supplier
     const { data: supplierData, error: supplierError } = await supabase
       .from('suppliers')
       .upsert({ name: form.supplierName.trim() }, { onConflict: 'name' })
       .select()
       .single()
-    if (supplierError) throw supplierError
 
-    // 3. Upsert Drug
+    if (supplierError) throw supplierError
+    if (!supplierData) throw new Error('ไม่สามารถสร้างข้อมูลบริษัทได้')
+
+    // 3. Upsert drug
     const { data: drugData, error: drugError } = await supabase
       .from('drugs')
       .upsert(
@@ -100,11 +109,13 @@ const handleSubmit = async () => {
       )
       .select()
       .single()
-    if (drugError) throw drugError
 
-    // 4. Insert Purchase Order
-    const purchaseOrder = {
-      import_batch_id: batchData.id, // <-- เพิ่ม Batch ID ที่ได้มา
+    if (drugError) throw drugError
+    if (!drugData) throw new Error('ไม่สามารถสร้างข้อมูลยาได้')
+
+    // 4. Insert purchase order
+    const purchaseOrder: PurchaseOrderInsert = {
+      import_batch_id: batchData.id,
       supplier_id: supplierData.id,
       drug_id: drugData.id,
       quantity: form.quantity,
@@ -113,15 +124,19 @@ const handleSubmit = async () => {
       total_price: form.quantity * form.pricePerUnit,
       status: 'ต้องสั่งซื้อ',
     }
-    const { error: orderError } = await supabase.from('purchase_orders').insert(purchaseOrder)
+
+    const { error: orderError } = await supabase
+      .from('purchase_orders')
+      .insert(purchaseOrder)
+
     if (orderError) throw orderError
 
-    // 5. แจ้ง Parent Component ว่าเพิ่มสำเร็จ
+    // 5. Notify parent component
     emit('order-added')
     emit('close')
-
-  } catch (err) {
-    error.value = `เกิดข้อผิดพลาด: ${err.message}`
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'
+    error.value = `เกิดข้อผิดพลาด: ${message}`
   } finally {
     isLoading.value = false
   }
@@ -133,23 +148,27 @@ const handleSubmit = async () => {
   margin-bottom: 2rem;
   border: 1px solid var(--primary-color);
 }
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
+
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
   font-size: 0.9rem;
 }
+
 .error-message {
   color: var(--status-pending-bg);
   margin-bottom: 1rem;
   text-align: center;
 }
+
 .button-container {
   display: flex;
   justify-content: flex-end;
