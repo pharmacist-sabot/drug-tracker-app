@@ -5,6 +5,7 @@ import { computed, onMounted, ref } from 'vue';
 import type { HistoryViewOrder, PurchaseOrderStatus } from '@/types/database';
 
 import { supabase } from '@/supabase/client';
+import { formatDate } from '@/utils/date';
 
 // ─────────────────────────────────────────────
 // Reactive state
@@ -38,23 +39,6 @@ const filteredOrders = computed<HistoryViewOrder[]>(() => {
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
-
-/**
- * Formats an ISO date string into a Thai locale short date.
- * Returns an em-dash when the value is falsy.
- */
-function formatDate(dateString: string | null | undefined): string {
-  if (!dateString)
-    return '—';
-
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  };
-
-  return new Date(dateString).toLocaleDateString('th-TH', options);
-}
 
 /**
  * Maps a purchase order status to a CSS class for the status badge.
@@ -157,7 +141,7 @@ onMounted(fetchHistory);
             </tr>
           </tbody>
         </table>
-        <div v-if="filteredOrders.length === 0" class="empty-state" style="box-shadow: none; padding: 2rem">
+        <div v-if="filteredOrders.length === 0" class="empty-state empty-state--flat">
           ไม่พบข้อมูลที่ตรงกับการค้นหา
         </div>
       </div>
@@ -194,5 +178,10 @@ onMounted(fetchHistory);
 
 .status-received {
   background-color: var(--status-received-bg);
+}
+
+.empty-state--flat {
+  box-shadow: none;
+  padding: 2rem;
 }
 </style>

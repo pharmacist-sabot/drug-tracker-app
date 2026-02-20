@@ -48,7 +48,7 @@ const routes: readonly RouteRecordRaw[] = [
     component: HistoryView,
     meta: { requiresAuth: true },
   },
-] as const;
+];
 
 const router = createRouter({
   history: createWebHistory(),
@@ -58,9 +58,15 @@ const router = createRouter({
 // Navigation guard — redirects unauthenticated users to Auth,
 // and authenticated users away from the Auth page.
 router.beforeEach(async (to, _from, next) => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  let session = null;
+
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  }
+  catch (err) {
+    console.error('Failed to retrieve auth session:', err);
+  }
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 

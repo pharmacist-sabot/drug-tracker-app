@@ -36,13 +36,20 @@ async function handleRegister(): Promise<void> {
   isLoading.value = true;
   message.value = '';
   try {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: email.value,
       password: password.value,
     });
     if (error)
       throw error;
-    router.push('/');
+
+    // Only navigate if a session/user is present (email confirmation may be required)
+    if (data?.session || data?.user) {
+      router.push('/');
+    }
+    else {
+      message.value = 'ลงทะเบียนสำเร็จ! กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีของคุณก่อนเข้าสู่ระบบ';
+    }
   }
   catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
@@ -68,7 +75,7 @@ async function handleRegister(): Promise<void> {
         {{ message }}
       </div>
 
-      <form @submit.prevent>
+      <form @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="email">อีเมล</label>
           <input id="email" v-model="email" type="email" placeholder="you@example.com" class="form-input">
@@ -80,10 +87,10 @@ async function handleRegister(): Promise<void> {
         </div>
 
         <div class="button-group">
-          <button class="btn btn-primary" :disabled="isLoading" @click="handleLogin">
+          <button type="submit" class="btn btn-primary" :disabled="isLoading">
             {{ isLoading ? 'กำลังโหลด...' : 'เข้าสู่ระบบ' }}
           </button>
-          <button class="btn btn-secondary" :disabled="isLoading" @click="handleRegister">
+          <button type="button" class="btn btn-secondary" :disabled="isLoading" @click="handleRegister">
             ลงทะเบียน
           </button>
         </div>

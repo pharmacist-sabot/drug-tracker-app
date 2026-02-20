@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
 // src/stores/notification.ts
+import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 import type { NotificationPayload, NotificationType } from '@/types/database';

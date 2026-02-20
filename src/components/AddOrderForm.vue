@@ -30,6 +30,19 @@ async function handleSubmit(): Promise<void> {
   isLoading.value = true;
   error.value = null;
 
+  // Validate minimum values for quantity and price
+  if (form.quantity <= 0) {
+    error.value = 'จำนวนต้องมากกว่า 0';
+    isLoading.value = false;
+    return;
+  }
+
+  if (form.pricePerUnit <= 0) {
+    error.value = 'ราคาต่อหน่วยต้องมากกว่า 0';
+    isLoading.value = false;
+    return;
+  }
+
   try {
     // 1. Upsert the manual import batch
     const { data: batchData, error: batchError } = await supabase
@@ -130,21 +143,17 @@ async function handleSubmit(): Promise<void> {
         </div>
         <div class="form-group">
           <label for="quantity">จำนวน</label>
-          <input id="quantity" v-model.number="form.quantity" type="number" class="form-input" required>
+          <input id="quantity" v-model.number="form.quantity" type="number" min="1" class="form-input" required>
         </div>
         <div class="form-group">
           <label for="unitCount">หน่วยนับ</label>
-          <input
-            id="unitCount" v-model="form.unitCount" type="text" class="form-input" required
-            placeholder="เช่น 1, 100"
-          >
+          <input id="unitCount" v-model="form.unitCount" type="text" class="form-input" required
+            placeholder="เช่น 1, 100">
         </div>
         <div class="form-group">
           <label for="pricePerUnit">ราคาต่อหน่วย</label>
-          <input
-            id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" step="0.01" class="form-input"
-            required
-          >
+          <input id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" min="0.01" step="0.01"
+            class="form-input" required>
         </div>
       </div>
       <div v-if="error" class="error-message">

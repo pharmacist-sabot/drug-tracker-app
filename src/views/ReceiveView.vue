@@ -6,6 +6,7 @@ import type { ReceivableOrder, ReceiveViewOrder } from '@/types/database';
 
 import { useNotificationStore } from '@/stores/notification';
 import { supabase } from '@/supabase/client';
+import { formatDate } from '@/utils/date';
 
 // ─────────────────────────────────────────────
 // Stores
@@ -26,24 +27,7 @@ const error = ref<string | null>(null);
 // ─────────────────────────────────────────────
 
 /**
- * Formats an ISO date string into a Thai locale short date.
- * Returns an em-dash when the value is falsy.
- */
-function formatDate(dateString: string | null | undefined): string {
-  if (!dateString)
-    return '—';
-
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  };
-
-  return new Date(dateString).toLocaleDateString('th-TH', options);
-}
-
-/**
- * Converts a raw `PurchaseOrderWithRelations` row into a `ReceivableOrder`
+ * Converts a raw `ReceiveViewOrder` row into a `ReceivableOrder`
  * by augmenting it with local UI state fields.
  */
 function toReceivableOrder(row: ReceiveViewOrder): ReceivableOrder {
@@ -59,6 +43,9 @@ function toReceivableOrder(row: ReceiveViewOrder): ReceivableOrder {
 // ─────────────────────────────────────────────
 
 async function fetchOrdersToReceive(): Promise<void> {
+  loading.value = true;
+  error.value = null;
+
   try {
     const { data, error: dbError } = await supabase
       .from('purchase_orders')
@@ -99,28 +86,35 @@ async function markAsReceived(order: ReceivableOrder): Promise<void> {
 
   order.isSaving = true;
 
-  const { error: updateError } = await supabase
-    .from('purchase_orders')
-    .update({
-      received_date: order.received_date_input,
-      status: 'รับของแล้ว',
-    })
-    .eq('id', order.id);
+  try {
+    const { error: updateError } = await supabase
+      .from('purchase_orders')
+      .update({
+        received_date: order.received_date_input,
+        status: 'รับของแล้ว',
+      })
+      .eq('id', order.id);
 
-  if (updateError) {
-    notificationStore.showNotification({
-      message: `เกิดข้อผิดพลาด: ${updateError.message}`,
-      type: 'error',
-    });
-    order.isSaving = false;
-  }
-  else {
+    if (updateError) {
+      throw updateError;
+    }
+
     // Remove the order from the local list after successful update
     orders.value = orders.value.filter(o => o.id !== order.id);
     notificationStore.showNotification({
       message: 'บันทึกการรับของเรียบร้อย!',
       type: 'success',
     });
+  }
+  catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    notificationStore.showNotification({
+      message: `เกิดข้อผิดพลาด: ${message}`,
+      type: 'error',
+    });
+  }
+  finally {
+    order.isSaving = false;
   }
 }
 
@@ -180,10 +174,8 @@ onMounted(fetchOrdersToReceive);
               <input v-model="order.received_date_input" type="date" class="form-input date-input">
             </td>
             <td>
-              <button
-                class="btn btn-primary" :disabled="!order.received_date_input || order.isSaving"
-                @click="markAsReceived(order)"
-              >
+              <button class="btn btn-primary" :disabled="!order.received_date_input || order.isSaving"
+                @click="markAsReceived(order)">
                 {{ order.isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
             </td>

@@ -1,4 +1,3 @@
-// src/types/database.ts
 // Supabase Database schema types — auto-generated style, kept in sync manually.
 
 // ─────────────────────────────────────────────
@@ -148,21 +147,14 @@ export type PurchaseOrderUpdate = Database['public']['Tables']['purchase_orders'
 // ─────────────────────────────────────────────
 
 /** Full purchase order with nested drug and supplier data (Supabase `select … drugs(*), suppliers(*)`) */
-export type PurchaseOrderWithRelations = {
-  id: number;
-  import_batch_id?: number;
-  packaging: string | null;
-  quantity: number;
-  unit_count: string;
-  price_per_unit: number;
-  total_price: number;
-  status: PurchaseOrderStatus;
-  order_date: string | null;
-  received_date: string | null;
-  created_at?: string;
-  drugs: DrugRow;
-  suppliers: SupplierRow;
-};
+export type PurchaseOrderWithRelations =
+  Pick<PurchaseOrderRow, 'id' | 'packaging' | 'quantity' | 'unit_count' | 'price_per_unit' | 'total_price' | 'status' | 'order_date' | 'received_date'>
+  & {
+    import_batch_id?: number;
+    created_at?: string;
+    drugs: DrugRow;
+    suppliers: SupplierRow;
+  };
 
 // ─────────────────────────────────────────────
 // View-specific partial query result types
@@ -170,36 +162,28 @@ export type PurchaseOrderWithRelations = {
 // ─────────────────────────────────────────────
 
 /** OrderView query: id, quantity, unit_count, price_per_unit, total_price, packaging, drugs(*), suppliers(*) */
-export type OrderViewOrder = {
-  id: number;
-  quantity: number;
-  unit_count: string;
-  price_per_unit: number;
-  total_price: number;
-  packaging: string | null;
-  drugs: DrugRow;
-  suppliers: SupplierRow;
-};
+export type OrderViewOrder =
+  Pick<PurchaseOrderRow, 'id' | 'quantity' | 'unit_count' | 'price_per_unit' | 'total_price' | 'packaging'>
+  & {
+    drugs: DrugRow;
+    suppliers: SupplierRow;
+  };
 
 /** ReceiveView query: id, order_date, packaging, drugs(*), suppliers(*) */
-export type ReceiveViewOrder = {
-  id: number;
-  order_date: string | null;
-  packaging: string | null;
-  drugs: DrugRow;
-  suppliers: SupplierRow;
-};
+export type ReceiveViewOrder =
+  Pick<PurchaseOrderRow, 'id' | 'order_date' | 'packaging'>
+  & {
+    drugs: DrugRow;
+    suppliers: SupplierRow;
+  };
 
 /** HistoryView query: id, status, order_date, received_date, packaging, drugs(*), suppliers(*) */
-export type HistoryViewOrder = {
-  id: number;
-  status: PurchaseOrderStatus;
-  order_date: string | null;
-  received_date: string | null;
-  packaging: string | null;
-  drugs: DrugRow;
-  suppliers: SupplierRow;
-};
+export type HistoryViewOrder =
+  Pick<PurchaseOrderRow, 'id' | 'status' | 'order_date' | 'received_date' | 'packaging'>
+  & {
+    drugs: DrugRow;
+    suppliers: SupplierRow;
+  };
 
 /** Extended order used in the "Receive" view with local UI state */
 export type ReceivableOrder = {

@@ -1,5 +1,5 @@
-import { createPinia } from 'pinia';
 // src/main.ts
+import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 
 import App from './App.vue';

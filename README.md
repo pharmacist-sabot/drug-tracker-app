@@ -6,7 +6,6 @@
 [![Pinia](https://img.shields.io/badge/Pinia-FFD859?style=for-the-badge&logo=pinia)](https://pinia.vuejs.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-Hosting-FFCA28?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 [![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint)](https://eslint.org/)
-[![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier)](https://prettier.io/)
 
 ## Overview
 
@@ -37,7 +36,7 @@ Built with a robust technology stack, this application leverages the power of Vu
 | **Build Tool** | Vite                        |
 | **State Mgt.** | Pinia                       |
 | **Linting**    | ESLint                      |
-| **Formatting** | Prettier                    |
+| **Formatting** | ESLint (stylistic)          |
 | **Deployment** | Firebase Hosting            |
 
 ## 🚀 Getting Started
@@ -90,13 +89,13 @@ Follow these instructions to set up the project on your local machine for develo
 
 ## 📜 Available Scripts
 
-| Script            | Description                                      |
-| ----------------- | ------------------------------------------------ |
-| `npm run dev`     | Starts the Vite development server with HMR.     |
-| `npm run build`   | Compiles and bundles the app for production.     |
-| `npm run preview` | Serves the production build locally for preview. |
-| `npm run lint`    | Lints files and attempts to fix issues.          |
-| `npm run format`  | Formats all source files using Prettier.         |
+| Script             | Description                                      |
+| ------------------ | ------------------------------------------------ |
+| `npm run dev`      | Starts the Vite development server with HMR.     |
+| `npm run build`    | Compiles and bundles the app for production.     |
+| `npm run preview`  | Serves the production build locally for preview. |
+| `npm run lint`     | Lints files and reports issues.                  |
+| `npm run lint:fix` | Lints files and attempts to auto-fix issues.     |
 
 ## 📦 Build & Deployment
 

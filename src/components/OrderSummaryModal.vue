@@ -54,9 +54,13 @@ function formatThaiDate(date: Date): string {
 
 /**
  * Formats a `Date` to an ISO date string (YYYY-MM-DD) suitable for database storage.
+ * Uses local date components to avoid UTC offset issues.
  */
 function toIsoDateString(date: Date): string {
-  return date.toISOString().split('T')[0]!;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -107,7 +111,7 @@ async function confirmAndSend(): Promise<void> {
   isSending.value = true;
   error.value = null;
 
-  const allOrderedIds: number[] = [];
+  const successfulIds: number[] = [];
 
   try {
     const orderDate = new Date();
@@ -122,10 +126,8 @@ async function confirmAndSend(): Promise<void> {
 
       const message = buildTelegramMessage(supplierName, group.orders, dateTelegram);
 
-      // Collect IDs for the batch DB update
-      for (const order of group.orders) {
-        allOrderedIds.push(order.id);
-      }
+      // Collect IDs for this supplier group
+      const groupOrderIds = group.orders.map(order => order.id);
 
       // Invoke Supabase Edge Function to send Telegram notification
       const { data: functionResponse, error: functionError } = await supabase.functions.invoke(
@@ -146,25 +148,36 @@ async function confirmAndSend(): Promise<void> {
           `Edge function returned an error for ${supplierName}: ${responseBody.error}`,
         );
       }
-    }
 
-    // Batch-update all selected orders to "สั่งแล้ว"
-    const { error: dbError } = await supabase
-      .from('purchase_orders')
-      .update({ status: 'สั่งแล้ว', order_date: dateForDatabase })
-      .in('id', allOrderedIds);
+      // Notification succeeded — update DB for this supplier's orders immediately
+      const { error: dbError } = await supabase
+        .from('purchase_orders')
+        .update({ status: 'สั่งแล้ว', order_date: dateForDatabase })
+        .in('id', groupOrderIds);
 
-    if (dbError) {
-      console.error('Critical Error: Notifications sent, but DB update failed!', dbError);
-      throw new Error(
-        `Notifications were sent, but failed to update database: ${dbError.message}`,
-      );
+      if (dbError) {
+        console.error(`DB update failed for supplier "${supplierName}" after notification was sent.`, dbError);
+        throw new Error(
+          `Notification sent for ${supplierName}, but DB update failed: ${dbError.message}`,
+        );
+      }
+
+      // Track successfully processed IDs
+      successfulIds.push(...groupOrderIds);
     }
 
     emit('ordersSent');
   }
   catch (err: unknown) {
-    error.value = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    const errorMsg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+
+    if (successfulIds.length > 0) {
+      error.value = `${errorMsg} (${successfulIds.length} รายการถูกส่งและอัปเดตสำเร็จแล้ว)`;
+    }
+    else {
+      error.value = errorMsg;
+    }
+
     console.error('An error occurred in confirmAndSend:', err);
   }
   finally {
@@ -218,10 +231,8 @@ async function confirmAndSend(): Promise<void> {
         <button class="btn btn-secondary" :disabled="isSending" @click="emit('close')">
           ยกเลิก
         </button>
-        <button
-          class="btn btn-primary" :disabled="isSending || Object.keys(groupedOrders).length === 0"
-          @click="confirmAndSend"
-        >
+        <button class="btn btn-primary" :disabled="isSending || Object.keys(groupedOrders).length === 0"
+          @click="confirmAndSend">
           {{ isSending ? 'กำลังส่ง...' : 'ยืนยันและส่งคำสั่งซื้อ' }}
         </button>
       </footer>

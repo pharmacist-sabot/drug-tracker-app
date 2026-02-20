@@ -9,7 +9,7 @@ const notificationStore = useNotificationStore();
   <Transition name="toast">
     <div v-if="notificationStore.isVisible" class="notification" :class="notificationStore.type">
       {{ notificationStore.message }}
-      <button class="close-btn" @click="notificationStore.hideNotification()">
+      <button class="close-btn" aria-label="Close notification" @click="notificationStore.hideNotification()">
         &times;
       </button>
     </div>

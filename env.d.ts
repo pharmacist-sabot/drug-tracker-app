@@ -1,13 +1,13 @@
 /// <reference types="vite/client" />
 
-type ImportMetaEnv = {
+interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
-};
+}
 
-type ImportMeta = {
+interface ImportMeta {
   readonly env: ImportMetaEnv;
-};
+}
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue';

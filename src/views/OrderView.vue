@@ -202,7 +202,7 @@ onMounted(fetchOrdersToBuy);
             </td>
             <td>{{ order.suppliers.name }}</td>
             <td>{{ order.quantity }} x {{ order.unit_count }}</td>
-            <td>{{ order.total_price.toFixed(2) }}</td>
+            <td>{{ (order.total_price ?? 0).toFixed(2) }}</td>
           </tr>
         </tbody>
       </table>
@@ -217,10 +217,8 @@ onMounted(fetchOrdersToBuy);
     </div>
 
     <!-- Section: Modal สรุปรายการสั่งซื้อ (แสดงเมื่อ isModalVisible เป็น true) -->
-    <OrderSummaryModal
-      v-if="isModalVisible" :grouped-orders="groupedSelectedOrders" @close="isModalVisible = false"
-      @orders-sent="handleOrdersSent"
-    />
+    <OrderSummaryModal v-if="isModalVisible" :grouped-orders="groupedSelectedOrders" @close="isModalVisible = false"
+      @orders-sent="handleOrdersSent" />
   </div>
 </template>
 

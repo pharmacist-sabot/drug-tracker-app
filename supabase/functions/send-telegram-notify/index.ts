@@ -6,9 +6,6 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
 const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID');
 
-// สร้าง URL ของ Telegram API โดยใช้ Token ที่ดึงมา
-const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-
 // เริ่มการทำงานของ Server Function
 serve(async (req) => {
   // ตั้งค่า CORS Headers เพื่อให้เว็บ Vue ของเราเรียกใช้ฟังก์ชันนี้ได้
@@ -28,6 +25,9 @@ serve(async (req) => {
       throw new Error('Telegram secrets (BOT_TOKEN or CHAT_ID) are not set in Supabase.');
     }
 
+    // สร้าง URL ของ Telegram API โดยใช้ Token ที่ผ่านการตรวจสอบแล้ว
+    const telegramApiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
     // ดึงข้อมูล 'message' ที่ถูกส่งมาจากเว็บ Vue ของเรา
     const { message } = await req.json();
     if (!message) {
@@ -42,7 +42,7 @@ serve(async (req) => {
     };
 
     // ส่ง Request ไปยัง Telegram API
-    const response = await fetch(TELEGRAM_API_URL, {
+    const response = await fetch(telegramApiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -64,9 +64,13 @@ serve(async (req) => {
       status: 200,
     });
   }
-  catch (error) {
+  catch (error: unknown) {
     // กรณีเกิดข้อผิดพลาด ให้ส่ง error กลับไปให้เว็บ Vue
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error
+      ? error.message
+      : String(error) || 'An unknown error occurred';
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     });
