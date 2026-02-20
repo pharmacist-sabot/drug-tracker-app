@@ -1,7 +1,7 @@
 {
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "never",
+    "source.organizeImports": "never"
   },
   "editor.formatOnSave": false,
   "eslint.useFlatConfig": true,
@@ -16,7 +16,7 @@
     { "rule": "*-dangle", "severity": "off", "fixable": true },
     { "rule": "*-newline", "severity": "off", "fixable": true },
     { "rule": "*quotes", "severity": "off", "fixable": true },
-    { "rule": "*semi", "severity": "off", "fixable": true },
+    { "rule": "*semi", "severity": "off", "fixable": true }
   ],
   "eslint.validate": [
     "javascript",
@@ -39,6 +39,6 @@
     "less",
     "scss",
     "pcss",
-    "postcss",
-  ],
+    "postcss"
+  ]
 }

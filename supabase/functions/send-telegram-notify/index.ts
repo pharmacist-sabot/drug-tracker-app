@@ -1,15 +1,13 @@
-// File: supabase/functions/send-telegram-notify/index.ts
-
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+/// <reference lib="deno.ns" />
 
 // ดึงค่า Secrets ของ Telegram ที่เราตั้งค่าไว้ในขั้นตอนที่ 1
 const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
 const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID');
 
 // เริ่มการทำงานของ Server Function
-serve(async (req) => {
+Deno.serve(async (req: Request): Promise<Response> => {
   // ตั้งค่า CORS Headers เพื่อให้เว็บ Vue ของเราเรียกใช้ฟังก์ชันนี้ได้
-  const corsHeaders = {
+  const corsHeaders: Record<string, string> = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };

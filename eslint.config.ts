@@ -8,6 +8,7 @@ export default antfu({
   vue: true,
   typescript: true,
   formatters: true,
+  ignores: ['supabase/**'],
   stylistic: {
     indent: 2,
     semi: true,

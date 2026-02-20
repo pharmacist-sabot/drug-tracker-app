@@ -217,8 +217,10 @@ onMounted(fetchOrdersToBuy);
     </div>
 
     <!-- Section: Modal สรุปรายการสั่งซื้อ (แสดงเมื่อ isModalVisible เป็น true) -->
-    <OrderSummaryModal v-if="isModalVisible" :grouped-orders="groupedSelectedOrders" @close="isModalVisible = false"
-      @orders-sent="handleOrdersSent" />
+    <OrderSummaryModal
+      v-if="isModalVisible" :grouped-orders="groupedSelectedOrders" @close="isModalVisible = false"
+      @orders-sent="handleOrdersSent"
+    />
   </div>
 </template>
 

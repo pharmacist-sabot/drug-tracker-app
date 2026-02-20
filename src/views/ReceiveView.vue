@@ -174,8 +174,10 @@ onMounted(fetchOrdersToReceive);
               <input v-model="order.received_date_input" type="date" class="form-input date-input">
             </td>
             <td>
-              <button class="btn btn-primary" :disabled="!order.received_date_input || order.isSaving"
-                @click="markAsReceived(order)">
+              <button
+                class="btn btn-primary" :disabled="!order.received_date_input || order.isSaving"
+                @click="markAsReceived(order)"
+              >
                 {{ order.isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
             </td>

@@ -231,8 +231,10 @@ async function confirmAndSend(): Promise<void> {
         <button class="btn btn-secondary" :disabled="isSending" @click="emit('close')">
           ยกเลิก
         </button>
-        <button class="btn btn-primary" :disabled="isSending || Object.keys(groupedOrders).length === 0"
-          @click="confirmAndSend">
+        <button
+          class="btn btn-primary" :disabled="isSending || Object.keys(groupedOrders).length === 0"
+          @click="confirmAndSend"
+        >
           {{ isSending ? 'กำลังส่ง...' : 'ยืนยันและส่งคำสั่งซื้อ' }}
         </button>
       </footer>

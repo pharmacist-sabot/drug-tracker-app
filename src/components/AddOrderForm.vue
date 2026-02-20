@@ -147,13 +147,17 @@ async function handleSubmit(): Promise<void> {
         </div>
         <div class="form-group">
           <label for="unitCount">หน่วยนับ</label>
-          <input id="unitCount" v-model="form.unitCount" type="text" class="form-input" required
-            placeholder="เช่น 1, 100">
+          <input
+            id="unitCount" v-model="form.unitCount" type="text" class="form-input" required
+            placeholder="เช่น 1, 100"
+          >
         </div>
         <div class="form-group">
           <label for="pricePerUnit">ราคาต่อหน่วย</label>
-          <input id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" min="0.01" step="0.01"
-            class="form-input" required>
+          <input
+            id="pricePerUnit" v-model.number="form.pricePerUnit" type="number" min="0.01" step="0.01"
+            class="form-input" required
+          >
         </div>
       </div>
       <div v-if="error" class="error-message">
