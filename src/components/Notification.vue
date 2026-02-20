@@ -1,21 +1,20 @@
 <!-- src/components/Notification.vue -->
+<script setup lang="ts">
+import { useNotificationStore } from '@/stores/notification';
+
+const notificationStore = useNotificationStore();
+</script>
+
 <template>
   <Transition name="toast">
-    <div
-      v-if="notificationStore.isVisible"
-      class="notification"
-      :class="notificationStore.type"
-    >
+    <div v-if="notificationStore.isVisible" class="notification" :class="notificationStore.type">
       {{ notificationStore.message }}
-      <button @click="notificationStore.hideNotification()" class="close-btn">&times;</button>
+      <button class="close-btn" aria-label="Close notification" @click="notificationStore.hideNotification()">
+        &times;
+      </button>
     </div>
   </Transition>
 </template>
-
-<script setup>
-import { useNotificationStore } from '@/stores/notification'
-const notificationStore = useNotificationStore()
-</script>
 
 <style scoped>
 .notification {
@@ -33,14 +32,17 @@ const notificationStore = useNotificationStore()
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   border: 1px solid transparent;
 }
+
 .notification.success {
   background-color: var(--status-received-bg);
   border-color: #ffffff55;
 }
+
 .notification.error {
   background-color: var(--status-pending-bg);
   border-color: #ffffff55;
 }
+
 .close-btn {
   background: none;
   border: none;
@@ -51,6 +53,7 @@ const notificationStore = useNotificationStore()
   opacity: 0.7;
   transition: opacity 0.2s;
 }
+
 .close-btn:hover {
   opacity: 1;
 }
@@ -60,6 +63,7 @@ const notificationStore = useNotificationStore()
 .toast-leave-active {
   transition: all 0.5s ease;
 }
+
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;

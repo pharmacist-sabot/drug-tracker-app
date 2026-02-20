@@ -1,102 +1,106 @@
 <!-- src/components/NavBar.vue -->
+<script setup lang="ts">
+import type { User } from '@supabase/supabase-js';
+
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+import { useTheme } from '@/composables/use-theme';
+import { supabase } from '@/supabase/client';
+
+const user = ref<User | null>(null);
+const router = useRouter();
+const isMenuOpen = ref<boolean>(false);
+const { isDark, toggleTheme } = useTheme();
+
+onMounted(async (): Promise<void> => {
+  const { data } = await supabase.auth.getUser();
+  user.value = data.user;
+});
+
+async function handleLogout(): Promise<void> {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error)
+      throw error;
+    router.push({ name: 'Auth' });
+  }
+  catch (err: unknown) {
+    console.error('Logout failed:', err);
+  }
+}
+
+function toggleMenu(): void {
+  isMenuOpen.value = !isMenuOpen.value;
+}
+
+function closeMenu(): void {
+  isMenuOpen.value = false;
+}
+</script>
+
 <template>
   <header class="navbar">
     <div class="navbar-container">
-      <div class="navbar-brand">DrugTracker</div>
+      <div class="navbar-brand">
+        DrugTracker
+      </div>
 
       <!-- Mobile Menu Toggle Button -->
-      <button @click="toggleMenu" class="mobile-nav-toggle" aria-label="Toggle navigation">
-        <span class="hamburger-icon"></span>
+      <button class="mobile-nav-toggle" aria-label="Toggle navigation" @click="toggleMenu">
+        <span class="hamburger-icon" />
       </button>
 
       <!-- Navigation Links -->
       <nav class="nav-links" :class="{ 'is-open': isMenuOpen }">
-        <router-link to="/" @click="closeMenu">นำเข้าไฟล์</router-link>
-        <router-link to="/to-order" @click="closeMenu">รายการต้องสั่งซื้อ</router-link>
-        <router-link to="/to-receive" @click="closeMenu">รายการรอรับของ</router-link>
-        <router-link to="/history" @click="closeMenu">ประวัติ</router-link>
+        <router-link to="/" @click="closeMenu">
+          นำเข้าไฟล์
+        </router-link>
+        <router-link to="/to-order" @click="closeMenu">
+          รายการต้องสั่งซื้อ
+        </router-link>
+        <router-link to="/to-receive" @click="closeMenu">
+          รายการรอรับของ
+        </router-link>
+        <router-link to="/history" @click="closeMenu">
+          ประวัติ
+        </router-link>
       </nav>
 
       <!-- User Info and Actions -->
       <div class="user-actions">
         <span v-if="user" class="user-email">{{ user.email }}</span>
-        <button
-          @click="toggleTheme"
-          class="theme-toggle"
-          :aria-label="`Switch to ${isDark ? 'light' : 'dark'} mode`"
-        >
-          <!-- Simple Sun/Moon SVG Icons -->
+        <button class="theme-toggle" :aria-label="`Switch to ${isDark ? 'light' : 'dark'} mode`" @click="toggleTheme">
+          <!-- Moon icon (shown in dark mode) -->
           <svg
-            v-if="isDark"
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           >
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
+          <!-- Sun icon (shown in light mode) -->
           <svg
-            v-else
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           >
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
           </svg>
         </button>
-        <button @click="handleLogout" class="logout-button">ออกจากระบบ</button>
+        <button class="logout-button" @click="handleLogout">
+          ออกจากระบบ
+        </button>
       </div>
     </div>
   </header>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue'
-import { supabase } from '../supabase/client'
-import { useRouter } from 'vue-router'
-import { useTheme } from '../composables/useTheme'
-
-const user = ref(null)
-const router = useRouter()
-const isMenuOpen = ref(false)
-const { isDark, toggleTheme } = useTheme()
-
-onMounted(async () => {
-  const { data } = await supabase.auth.getUser()
-  user.value = data.user
-})
-
-const handleLogout = async () => {
-  await supabase.auth.signOut()
-  router.push('/auth')
-}
-
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-}
-const closeMenu = () => {
-  isMenuOpen.value = false
-}
-</script>
 
 <style scoped>
 .navbar {
@@ -172,11 +176,14 @@ const closeMenu = () => {
 .user-email {
   color: var(--subtle-text-color);
   font-size: 0.9rem;
-  display: none; /* Hide on mobile by default */
+  display: none;
+  /* Hide on mobile by default */
 }
+
 @media (min-width: 1024px) {
   .user-email {
-    display: inline; /* Show on larger screens */
+    display: inline;
+    /* Show on larger screens */
   }
 }
 
@@ -209,6 +216,7 @@ const closeMenu = () => {
   border-color: var(--status-pending-bg);
   color: var(--status-pending-bg);
 }
+
 .logout-button:hover {
   background-color: var(--status-pending-bg);
   color: var(--card-bg-color);
@@ -231,6 +239,7 @@ const closeMenu = () => {
   position: relative;
   transition: background-color 0s 0.2s;
 }
+
 .hamburger-icon::before,
 .hamburger-icon::after {
   content: '';
@@ -243,9 +252,11 @@ const closeMenu = () => {
     transform 0.2s,
     top 0.2s 0.2s;
 }
+
 .hamburger-icon::before {
   top: -8px;
 }
+
 .hamburger-icon::after {
   top: 8px;
 }
@@ -291,6 +302,7 @@ const closeMenu = () => {
       top 0.2s,
       transform 0.2s 0.2s;
   }
+
   .is-open + .user-actions .mobile-nav-toggle .hamburger-icon::after,
   .mobile-nav-toggle.is-open .hamburger-icon::after {
     top: 0;
