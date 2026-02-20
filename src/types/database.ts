@@ -239,32 +239,6 @@ export type NotificationPayload = {
 };
 
 // ─────────────────────────────────────────────
-// CSV import types
-// ─────────────────────────────────────────────
-
-export type CsvHeaderMapping = {
-  readonly supplier: string;
-  readonly drugName: string;
-  readonly form: string;
-  readonly strength: string;
-  readonly quantity: string;
-  readonly unitCount: string;
-  readonly packaging: string;
-  readonly pricePerUnit: string;
-  readonly totalPrice: string;
-};
-
-export type CsvRow = {
-  [header: string]: string | undefined;
-};
-
-export type ImportResult = {
-  success: boolean;
-  message: string;
-  errors?: string[];
-};
-
-// ─────────────────────────────────────────────
 // Add-order form shape
 // ─────────────────────────────────────────────
 

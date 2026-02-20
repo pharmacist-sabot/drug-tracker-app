@@ -54,9 +54,6 @@ function closeMenu(): void {
       <!-- Navigation Links -->
       <nav class="nav-links" :class="{ 'is-open': isMenuOpen }">
         <router-link to="/" @click="closeMenu">
-          นำเข้าไฟล์
-        </router-link>
-        <router-link to="/to-order" @click="closeMenu">
           รายการต้องสั่งซื้อ
         </router-link>
         <router-link to="/to-receive" @click="closeMenu">
