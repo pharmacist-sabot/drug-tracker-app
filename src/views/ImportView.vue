@@ -6,8 +6,11 @@ import { ref } from 'vue';
 import type {
   CsvHeaderMapping,
   CsvRow,
+  DrugRow,
+  ImportBatchRow,
   ImportResult,
   PurchaseOrderInsert,
+  SupplierRow,
 } from '@/types/database';
 
 import { supabase } from '@/supabase/client';
@@ -135,7 +138,8 @@ async function processData(data: CsvRow[], fileName: string): Promise<void> {
     const { data: batchData, error: batchError } = await supabase
       .from('import_batches')
       .insert({ file_name: fileName })
-      .select()
+      .select('*')
+      .returns<ImportBatchRow[]>()
       .single();
 
     if (batchError)
@@ -180,7 +184,8 @@ async function processData(data: CsvRow[], fileName: string): Promise<void> {
       const { data: supplierData, error: supplierError } = await supabase
         .from('suppliers')
         .upsert({ name: supplierName }, { onConflict: 'name' })
-        .select()
+        .select('*')
+        .returns<SupplierRow[]>()
         .single();
 
       if (supplierError)
@@ -202,7 +207,8 @@ async function processData(data: CsvRow[], fileName: string): Promise<void> {
           },
           { onConflict: 'name,form,strength' },
         )
-        .select()
+        .select('*')
+        .returns<DrugRow[]>()
         .single();
 
       if (drugError)

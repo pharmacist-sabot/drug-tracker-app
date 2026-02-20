@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 
-import type { AddOrderFormData, PurchaseOrderInsert } from '@/types/database';
+import type { AddOrderFormData, DrugRow, ImportBatchRow, PurchaseOrderInsert, SupplierRow } from '@/types/database';
 
 import { supabase } from '@/supabase/client';
 
@@ -48,7 +48,8 @@ async function handleSubmit(): Promise<void> {
     const { data: batchData, error: batchError } = await supabase
       .from('import_batches')
       .upsert({ file_name: MANUAL_BATCH_NAME }, { onConflict: 'file_name' })
-      .select()
+      .select('*')
+      .returns<ImportBatchRow[]>()
       .single();
 
     if (batchError)
@@ -60,7 +61,8 @@ async function handleSubmit(): Promise<void> {
     const { data: supplierData, error: supplierError } = await supabase
       .from('suppliers')
       .upsert({ name: form.supplierName.trim() }, { onConflict: 'name' })
-      .select()
+      .select('*')
+      .returns<SupplierRow[]>()
       .single();
 
     if (supplierError)
@@ -79,7 +81,8 @@ async function handleSubmit(): Promise<void> {
         },
         { onConflict: 'name,form,strength' },
       )
-      .select()
+      .select('*')
+      .returns<DrugRow[]>()
       .single();
 
     if (drugError)

@@ -23,6 +23,7 @@ export type Database = {
           file_name?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       suppliers: {
         Row: {
@@ -40,6 +41,7 @@ export type Database = {
           name?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       drugs: {
         Row: {
@@ -63,6 +65,7 @@ export type Database = {
           strength?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       purchase_orders: {
         Row: {
@@ -110,6 +113,29 @@ export type Database = {
           received_date?: string | null;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'purchase_orders_import_batch_id_fkey';
+            columns: ['import_batch_id'];
+            isOneToOne: false;
+            referencedRelation: 'import_batches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'purchase_orders_supplier_id_fkey';
+            columns: ['supplier_id'];
+            isOneToOne: false;
+            referencedRelation: 'suppliers';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'purchase_orders_drug_id_fkey';
+            columns: ['drug_id'];
+            isOneToOne: false;
+            referencedRelation: 'drugs';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: Record<string, never>;
