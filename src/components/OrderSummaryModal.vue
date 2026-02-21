@@ -72,10 +72,20 @@ function buildTelegramMessage(
 ): string {
   const safeSupplierName = escapeMarkdownV2(supplierName);
 
-  let message = `*📝 ใบสั่งซื้อยาถึง บ\\. ${safeSupplierName}*\n\n`;
-  message += `จาก: *โรงพยาบาลสระโบสถ์ จังหวัดลพบุรี*\n`;
-  message += `*วันที่สั่งซื้อ:* ${dateTelegram}\n\n`;
+  // ── Document title ───────────────────────────
+  let message = `*ใบขอสั่งซื้อยา*\n\n`;
 
+  // ── Addressing ──────────────────────────────
+  message += `เรียน บริษัท ${safeSupplierName}\n`;
+  message += `เรื่อง ขออนุมัติสั่งซื้อยา\n`;
+  message += `ลงวันที่ ${dateTelegram}\n\n`;
+
+  // ── Body ────────────────────────────────────
+  message += `ด้วยงานเภสัชกรรม โรงพยาบาลสระโบสถ์\n`;
+  message += `มีความประสงค์ขอสั่งซื้อยา ดังรายการต่อไปนี้\n\n`;
+  message += `*รายละเอียดรายการยาที่ขอสั่งซื้อ*\n\n`;
+
+  // ── Drug list ───────────────────────────────
   orders.forEach((order, index) => {
     const drugName = escapeMarkdownV2(order.drugs.name);
     const form = escapeMarkdownV2(order.drugs.form);
@@ -84,20 +94,23 @@ function buildTelegramMessage(
     const quantity = escapeMarkdownV2(order.quantity);
     const unit = escapeMarkdownV2(order.unit_count);
 
-    message += `*${index + 1}\\. ${drugName}*`;
+    message += `*${index + 1}\\.* *${drugName}*`;
     if (form)
       message += ` \\[${form}\\]`;
     if (strength)
       message += ` \\(${strength}\\)`;
+    message += `\n`;
 
-    if (packaging) {
-      message += `\n   _หน่วยนับ: ${packaging}_`;
-    }
+    if (packaging)
+      message += `   หน่วยนับ: ${packaging}\n`;
 
-    message += `\n   _จำนวน: ${quantity} x ${unit}_\n`;
+    message += `   จำนวน: ${quantity} × ${unit}\n\n`;
   });
 
-  message += `\n*หมายเหตุ: บิลไม่ลงวันที่*\n`;
+  // ── Footer ──────────────────────────────────
+  message += `หมายเหตุ กรุณาออกบิลโดยไม่ลงวันที่\n\n`;
+  message += `ขอแสดงความนับถือ\n`;
+  message += `_งานเภสัชกรรม รพ\\.สระโบสถ์_`;
 
   return message;
 }
@@ -216,7 +229,7 @@ async function confirmAndSend(): Promise<void> {
                 <template v-if="order.drugs.strength"> ({{ order.drugs.strength }})</template>
                 <template v-if="order.packaging"> / {{ order.packaging }}</template>
               </span>
-              <span>จำนวน {{ order.quantity }} x {{ order.unit_count }}</span>
+              <span>จำนวน {{ order.quantity }} × {{ order.unit_count }}</span>
             </li>
           </ul>
         </div>
@@ -231,7 +244,8 @@ async function confirmAndSend(): Promise<void> {
           ยกเลิก
         </button>
         <button
-          class="btn btn-primary" :disabled="isSending || Object.keys(groupedOrders).length === 0"
+          class="btn btn-primary"
+          :disabled="isSending || Object.keys(groupedOrders).length === 0"
           @click="confirmAndSend"
         >
           {{ isSending ? 'กำลังส่ง...' : 'ยืนยันและส่งคำสั่งซื้อ' }}
