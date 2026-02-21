@@ -1,11 +1,10 @@
 <!-- src/views/HistoryView.vue -->
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-
 import type { HistoryViewOrder, PurchaseOrderStatus } from '@/types/database';
 
 import { supabase } from '@/supabase/client';
 import { formatDate } from '@/utils/date';
+import { computed, onMounted, ref } from 'vue';
 
 // ─────────────────────────────────────────────
 // Reactive state

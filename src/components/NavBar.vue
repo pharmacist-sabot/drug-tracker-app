@@ -2,11 +2,10 @@
 <script setup lang="ts">
 import type { User } from '@supabase/supabase-js';
 
-import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
-
 import { useTheme } from '@/composables/use-theme';
 import { supabase } from '@/supabase/client';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const user = ref<User | null>(null);
 const router = useRouter();

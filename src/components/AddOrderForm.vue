@@ -1,10 +1,9 @@
 <!-- src/components/AddOrderForm.vue -->
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
-
 import type { AddOrderFormData, DrugRow, ImportBatchRow, PurchaseOrderInsert, SupplierRow } from '@/types/database';
 
 import { supabase } from '@/supabase/client';
+import { reactive, ref } from 'vue';
 
 const emit = defineEmits<{
   close: [];
