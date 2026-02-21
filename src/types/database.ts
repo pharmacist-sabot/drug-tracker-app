@@ -251,3 +251,38 @@ export type AddOrderFormData = {
   unitCount: string;
   pricePerUnit: number;
 };
+
+// ─────────────────────────────────────────────
+// Quick-order catalog types
+// ─────────────────────────────────────────────
+
+/**
+ * A drug row enriched with the most recently used ordering context
+ * (supplier, unit count, packaging, price) derived from purchase_orders history.
+ * Fields are `null` when the drug has never been ordered before.
+ */
+export type DrugCatalogEntry = DrugRow & {
+  lastSupplierId: number | null;
+  lastSupplierName: string | null;
+  lastUnitCount: string | null;
+  lastPackaging: string | null;
+  lastPricePerUnit: number | null;
+};
+
+/**
+ * Represents a single editable line item in the Quick Order draft form.
+ * Each item corresponds to one drug in the catalog.
+ */
+export type QuickOrderDraftItem = {
+  drug: DrugCatalogEntry;
+  /** Whether this item has been checked for inclusion in the order */
+  isSelected: boolean;
+  quantity: number;
+  unitCount: string;
+  packaging: string;
+  /** Resolved supplier ID — set after upsert; may be null for brand-new suppliers */
+  supplierId: number | null;
+  /** Editable supplier name; used as the source of truth for submission */
+  supplierName: string;
+  pricePerUnit: number;
+};
