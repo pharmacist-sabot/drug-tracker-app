@@ -4,6 +4,7 @@ import { supabase } from '@/supabase/client';
 import AuthView from '@/views/AuthView.vue';
 import HistoryView from '@/views/HistoryView.vue';
 import OrderView from '@/views/OrderView.vue';
+import QuickOrderView from '@/views/QuickOrderView.vue';
 import ReceiveView from '@/views/ReceiveView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 // src/router/index.ts
@@ -21,6 +22,12 @@ const routes: readonly RouteRecordRaw[] = [
     path: '/auth',
     name: 'Auth',
     component: AuthView,
+  },
+  {
+    path: '/quick-order',
+    name: 'QuickOrder',
+    component: QuickOrderView,
+    meta: { requiresAuth: true },
   },
   {
     path: '/',
