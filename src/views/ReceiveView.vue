@@ -1,12 +1,11 @@
 <!-- src/views/ReceiveView.vue -->
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-
 import type { ReceivableOrder, ReceiveViewOrder } from '@/types/database';
 
 import { useNotificationStore } from '@/stores/notification';
 import { supabase } from '@/supabase/client';
 import { formatDate } from '@/utils/date';
+import { onMounted, ref } from 'vue';
 
 // ─────────────────────────────────────────────
 // Stores

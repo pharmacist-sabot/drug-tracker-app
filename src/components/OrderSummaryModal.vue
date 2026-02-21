@@ -1,10 +1,9 @@
 <!-- src/components/OrderSummaryModal.vue -->
 <script setup lang="ts">
-import { ref } from 'vue';
-
 import type { GroupedOrders, OrderViewOrder } from '@/types/database';
 
 import { supabase } from '@/supabase/client';
+import { ref } from 'vue';
 
 // ─────────────────────────────────────────────
 // Props & Emits

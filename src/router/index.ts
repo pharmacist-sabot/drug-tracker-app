@@ -1,14 +1,12 @@
 import type { RouteRecordRaw } from 'vue-router';
 
-// src/router/index.ts
-import { createRouter, createWebHistory } from 'vue-router';
-
 import { supabase } from '@/supabase/client';
 import AuthView from '@/views/AuthView.vue';
 import HistoryView from '@/views/HistoryView.vue';
-import ImportView from '@/views/ImportView.vue';
 import OrderView from '@/views/OrderView.vue';
 import ReceiveView from '@/views/ReceiveView.vue';
+import { createRouter, createWebHistory } from 'vue-router';
+// src/router/index.ts
 
 // Augment route meta typing
 declare module 'vue-router' {
@@ -26,12 +24,6 @@ const routes: readonly RouteRecordRaw[] = [
   },
   {
     path: '/',
-    name: 'Import',
-    component: ImportView,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/to-order',
     name: 'Order',
     component: OrderView,
     meta: { requiresAuth: true },
@@ -74,7 +66,7 @@ router.beforeEach(async (to, _from, next) => {
     next({ name: 'Auth' });
   }
   else if (to.name === 'Auth' && session) {
-    next({ name: 'Import' });
+    next({ name: 'Order' });
   }
   else {
     next();

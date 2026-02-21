@@ -22,11 +22,9 @@ export default antfu({
     'no-console': ['warn'],
     'antfu/no-top-level-await': ['off'],
     'node/prefer-global/process': ['off'],
-    'perfectionist/sort-imports': ['error', {
-      tsconfig: {
-        rootDir: '.',
-      },
-    }],
+    'import/order': 'off',
+    'sort-imports': 'off',
+    'perfectionist/sort-imports': ['error'],
     'unicorn/filename-case': ['error', {
       cases: {
         kebabCase: true,

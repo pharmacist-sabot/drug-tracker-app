@@ -1,8 +1,8 @@
+import type { NotificationPayload, NotificationType } from '@/types/database';
+
 // src/stores/notification.ts
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-
-import type { NotificationPayload, NotificationType } from '@/types/database';
 
 const NOTIFICATION_DURATION_MS = 3_000;
 const TRANSITION_DURATION_MS = 500;
