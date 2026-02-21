@@ -47,9 +47,15 @@ export function useQuickOrder() {
     () => draftItems.value.filter(item => item.isSelected).length,
   );
 
-  /** True when at least one selected item is missing a supplier name */
+  /** True when at least one selected item is missing a supplier name or has invalid numeric fields */
   const hasInvalidItems = computed<boolean>(
-    () => draftItems.value.some(item => item.isSelected && !item.supplierName.trim()),
+    () => draftItems.value.some(item =>
+      item.isSelected && (
+        !item.supplierName.trim()
+        || !(Number.isFinite(item.quantity) && item.quantity >= 1)
+        || !(Number.isFinite(item.pricePerUnit) && item.pricePerUnit >= 0)
+      ),
+    ),
   );
 
   /** All items that are currently selected */
@@ -181,28 +187,24 @@ export function useQuickOrder() {
       if (!batchData)
         throw new Error('ไม่สามารถสร้าง import batch ได้');
 
-      // ── Step 2: Upsert all unique supplier names in parallel ──
+      // ── Step 2: Batch-upsert all unique supplier names in a single round-trip ──
       const uniqueNames = [...new Set(selected.map(i => i.supplierName.trim()))];
 
-      const supplierResults = await Promise.all(
-        uniqueNames.map(name =>
-          supabase
-            .from('suppliers')
-            .upsert({ name }, { onConflict: 'name' })
-            .select('id, name, created_at')
-            .returns<SupplierRow[]>()
-            .single(),
-        ),
-      );
+      const { data: supplierData, error: supplierError } = await supabase
+        .from('suppliers')
+        .upsert(uniqueNames.map(name => ({ name })), { onConflict: 'name' })
+        .select('id, name, created_at')
+        .returns<SupplierRow[]>();
 
-      // Build a name → id lookup map
-      const supplierIdMap = new Map<string, number>();
-      for (const result of supplierResults) {
-        if (result.error)
-          throw result.error;
-        if (result.data)
-          supplierIdMap.set(result.data.name, result.data.id);
-      }
+      if (supplierError)
+        throw supplierError;
+
+      // Build a name → id lookup map keyed by the DB-returned name.
+      // Because we send already-trimmed strings, row.name matches item.supplierName.trim()
+      // exactly, making the Step 3 lookup reliable regardless of DB-side normalization.
+      const supplierIdMap = new Map<string, number>(
+        (supplierData ?? []).map(row => [row.name, row.id]),
+      );
 
       // ── Step 3: Build the purchase order payloads ──
       const orders: PurchaseOrderInsert[] = selected.map((item): PurchaseOrderInsert => {
@@ -210,14 +212,22 @@ export function useQuickOrder() {
         if (!supplierId)
           throw new Error(`ไม่พบ supplier ID สำหรับยา "${item.drug.name}"`);
 
+        const qty = Number(item.quantity);
+        const price = Number(item.pricePerUnit);
+
+        if (!Number.isFinite(qty) || qty < 1)
+          throw new Error(`ยา "${item.drug.name}" มีจำนวนที่ไม่ถูกต้อง (ต้องเป็นจำนวนเต็มมากกว่า 0)`);
+        if (!Number.isFinite(price) || price < 0)
+          throw new Error(`ยา "${item.drug.name}" (${item.supplierName.trim()}) มีราคาต่อหน่วยที่ไม่ถูกต้อง (ต้องไม่ติดลบ)`);
+
         return {
           import_batch_id: batchData.id,
           supplier_id: supplierId,
           drug_id: item.drug.id,
-          quantity: item.quantity,
+          quantity: qty,
           unit_count: item.unitCount.trim() || '-',
-          price_per_unit: item.pricePerUnit,
-          total_price: item.quantity * item.pricePerUnit,
+          price_per_unit: price,
+          total_price: qty * price,
           packaging: item.packaging.trim() || null,
           status: 'ต้องสั่งซื้อ',
         };

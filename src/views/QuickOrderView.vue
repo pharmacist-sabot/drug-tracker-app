@@ -44,7 +44,8 @@ const filteredItems = computed<QuickOrderDraftItem[]>(() => {
   const supplier = supplierFilter.value.trim().toLowerCase();
 
   return draftItems.value.filter((item) => {
-    const drugText = `${item.drug.name} ${item.drug.form ?? ''} ${item.drug.strength ?? ''}`.toLowerCase();
+    const drugText
+      = `${item.drug.name} ${item.drug.form ?? ''} ${item.drug.strength ?? ''}`.toLowerCase();
     const matchesName = !query || drugText.includes(query);
     const matchesSupplier = !supplier || item.supplierName.toLowerCase().includes(supplier);
     return matchesName && matchesSupplier;
@@ -57,10 +58,13 @@ const isAllFilteredSelected = computed<boolean>(() => {
   return visible.length > 0 && visible.every(item => item.isSelected);
 });
 
-/** Unique supplier names derived from allSuppliers list */
-const supplierNames = computed<string[]>(
-  () => allSuppliers.value.map(s => s.name),
+/** Number of currently visible (filtered) items that are selected */
+const filteredSelectedCount = computed<number>(
+  () => filteredItems.value.filter(i => i.isSelected).length,
 );
+
+/** Unique supplier names derived from allSuppliers list */
+const supplierNames = computed<string[]>(() => allSuppliers.value.map(s => s.name));
 
 // ─────────────────────────────────────────────
 // Selection Helpers
@@ -112,7 +116,8 @@ onMounted(fetchCatalog);
     <header class="page-header">
       <h1>สร้างใบสั่งซื้อด่วน</h1>
       <p class="subtitle">
-        เลือกยาและระบุจำนวนที่ต้องการ ระบบจะดึงข้อมูลบริษัท ราคา และหน่วยนับจากประวัติล่าสุดให้อัตโนมัติ
+        เลือกยาและระบุจำนวนที่ต้องการ ระบบจะดึงข้อมูลบริษัท ราคา
+        และหน่วยนับจากประวัติล่าสุดให้อัตโนมัติ
       </p>
     </header>
 
@@ -233,7 +238,9 @@ onMounted(fetchCatalog);
         stroke-linecap="round"
         stroke-linejoin="round"
       >
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+        <path
+          d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+        />
       </svg>
       <p>ยังไม่มีรายการยาในระบบ</p>
       <p class="subtle">
@@ -261,7 +268,10 @@ onMounted(fetchCatalog);
       <button
         class="btn btn-secondary btn-sm"
         type="button"
-        @click="searchQuery = ''; supplierFilter = ''"
+        @click="
+          searchQuery = '';
+          supplierFilter = '';
+        "
       >
         ล้างตัวกรอง
       </button>
@@ -281,7 +291,7 @@ onMounted(fetchCatalog);
               <input
                 type="checkbox"
                 :checked="isAllFilteredSelected"
-                :indeterminate="selectedCount > 0 && !isAllFilteredSelected"
+                :indeterminate="filteredSelectedCount > 0 && !isAllFilteredSelected"
                 title="เลือก/ยกเลิกทั้งหมดที่แสดงอยู่"
                 @change="toggleAllFiltered"
               >
@@ -310,17 +320,17 @@ onMounted(fetchCatalog);
             class="catalog-row"
             :class="{
               'row-selected': item.isSelected,
-              'row-invalid': item.isSelected && !item.supplierName.trim(),
+              'row-invalid':
+                item.isSelected
+                && (!item.supplierName.trim()
+                  || !(Number.isFinite(item.quantity) && item.quantity >= 1)
+                  || !(Number.isFinite(item.pricePerUnit) && item.pricePerUnit >= 0)),
             }"
             @click.self="toggleItem(item)"
           >
             <!-- Checkbox -->
             <td class="col-checkbox" @click.stop>
-              <input
-                type="checkbox"
-                :checked="item.isSelected"
-                @change="toggleItem(item)"
-              >
+              <input type="checkbox" :checked="item.isSelected" @change="toggleItem(item)">
             </td>
 
             <!-- Drug Info -->
@@ -345,10 +355,7 @@ onMounted(fetchCatalog);
                 autocomplete="off"
                 @focus="item.isSelected = true"
               >
-              <span
-                v-if="item.isSelected && !item.supplierName.trim()"
-                class="field-error-hint"
-              >กรุณาระบุบริษัท</span>
+              <span v-if="item.isSelected && !item.supplierName.trim()" class="field-error-hint">กรุณาระบุบริษัท</span>
             </td>
 
             <!-- Quantity Input -->
@@ -430,11 +437,13 @@ onMounted(fetchCatalog);
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <path
+            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+          />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
-        มีรายการที่ยังไม่ได้ระบุบริษัท
+        มีรายการที่ข้อมูลไม่ครบถ้วน (บริษัท, จำนวน หรือราคา)
       </div>
 
       <button
@@ -444,7 +453,7 @@ onMounted(fetchCatalog);
         @click="handleSubmit"
       >
         <span v-if="submitting" class="btn-spinner" />
-        {{ submitting ? 'กำลังสร้างรายการ...' : `สร้างรายการสั่งซื้อ (${selectedCount})` }}
+        {{ submitting ? "กำลังสร้างรายการ..." : `สร้างรายการสั่งซื้อ (${selectedCount})` }}
       </button>
     </div>
   </div>
