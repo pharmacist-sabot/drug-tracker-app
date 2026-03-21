@@ -1,11 +1,11 @@
 # Drug Tracker Application
 
-[![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org/)
-[![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
-[![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase)](https://supabase.io/)
-[![Pinia](https://img.shields.io/badge/Pinia-FFD859?style=for-the-badge&logo=pinia)](https://pinia.vuejs.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-Hosting-FFCA28?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
-[![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint)](https://eslint.org/)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js)](https://vuejs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite)](https://vitejs.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase)](https://supabase.io/)
+[![Pinia](https://img.shields.io/badge/Pinia-FFD859?logo=pinia)](https://pinia.vuejs.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-Hosting-FFCA28?logo=firebase)](https://firebase.google.com/)
+[![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint)](https://eslint.org/)
 
 ## Overview
 
@@ -15,7 +15,7 @@ A key feature of the system is its integration with **Telegram for real-time ord
 
 Built with a robust technology stack, this application leverages the power of Vue 3 and the Vite ecosystem for a fast and reactive frontend, while utilizing Supabase for a scalable and secure backend infrastructure.
 
-## ✨ Key Features
+## Key Features
 
 - **Bulk Order Creation via CSV**: Easily upload a CSV file containing a list of required drugs to initiate the procurement process quickly.
 - **End-to-End Order Tracking**: Manage the complete status of orders, from 'Ordered' to 'Delivered'. A simple interface allows users to update the status upon receiving goods.
@@ -27,7 +27,7 @@ Built with a robust technology stack, this application leverages the power of Vu
 - **Centralized State Management**: Utilizes Pinia for predictable and debuggable state.
 - **Deployment Ready**: Comes with a pre-defined configuration for seamless deployment to Firebase Hosting.
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Category       | Technology                  |
 | -------------- | --------------------------- |
@@ -39,7 +39,7 @@ Built with a robust technology stack, this application leverages the power of Vu
 | **Formatting** | ESLint (stylistic)          |
 | **Deployment** | Firebase Hosting            |
 
-## 🚀 Getting Started
+## Getting Started
 
 Follow these instructions to set up the project on your local machine for development and testing purposes.
 
@@ -87,7 +87,7 @@ Follow these instructions to set up the project on your local machine for develo
     npm run dev
     ```
 
-## 📜 Available Scripts
+## Available Scripts
 
 | Script             | Description                                      |
 | ------------------ | ------------------------------------------------ |
@@ -97,7 +97,7 @@ Follow these instructions to set up the project on your local machine for develo
 | `npm run lint`     | Lints files and reports issues.                  |
 | `npm run lint:fix` | Lints files and attempts to auto-fix issues.     |
 
-## 📦 Build & Deployment
+## Build & Deployment
 
 ### Building for Production
 
@@ -107,7 +107,7 @@ To create a production-ready build, run the following command. The output will b
 npm run build
 ```
 
-## 🚀 Deployment
+## Deployment
 
 This project is pre-configured for deployment on **Firebase Hosting**. The `firebase.json` file defines the public directory (`dist`) and rewrite rules necessary for a single-page application.
 
@@ -119,7 +119,7 @@ firebase deploy
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! If you would like to contribute to this project, please follow these steps:
 
@@ -134,6 +134,6 @@ Contributions are welcome! If you would like to contribute to this project, plea
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**.
