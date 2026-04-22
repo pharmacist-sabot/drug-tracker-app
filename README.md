@@ -55,7 +55,7 @@ Follow these instructions to set up the project on your local machine for develo
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/pharmacist-sabot/drug-tracker-app.git
+    git clone https://github.com/suradet-ps/drug-tracker-app.git
     cd drug-tracker-app
     ```
 
